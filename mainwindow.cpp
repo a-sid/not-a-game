@@ -55,13 +55,15 @@ MainWindow::~MainWindow() noexcept { delete UI_; }
 NotAGame::Mod MainWindow::LoadMod() noexcept { return NotAGame::Mod::Load(std::string{"basic"}); }
 
 NotAGame::GlobalMap MainWindow::CreateMap() noexcept {
-  NotAGame::GlobalMap M(48, 48);
+  NotAGame::GlobalMap M(1, 16, 16);
   const auto &Terrains = Mod_.GetTerrains();
   const auto NumTerrains = Terrains.size();
 
-  for (Size X = 0, XE = GlobalMap_.GetWidth(); X < XE; ++X) {
-    for (Size Y = 0, YE = GlobalMap_.GetHeight(); Y < YE; ++Y) {
-      M.GetTile(X, Y).Terrain_ = std::rand() % NumTerrains;
+  for (Size Layer = 0, LayerE = GlobalMap_.GetNumLayers(); Layer < LayerE; ++Layer) {
+    for (Size X = 0, XE = GlobalMap_.GetWidth(); X < XE; ++X) {
+      for (Size Y = 0, YE = GlobalMap_.GetHeight(); Y < YE; ++Y) {
+        M.GetTile(Layer, X, Y).Terrain_ = std::rand() % NumTerrains;
+      }
     }
   }
 
@@ -73,7 +75,7 @@ void MainWindow::DrawTile(QPixmap &Pixmap, QPainter &Painter, int X, int Y,
   Painter.save();
   Painter.translate(kBorderWidth + (MapHeight + X - Y) * kDX, kBorderWidth + (X + Y) * kDY);
 
-  const auto &Tile = GlobalMap_.GetTile(X, Y);
+  const auto &Tile = GlobalMap_.GetTile(CurrentLayer_, X, Y);
   QBrush Brush =
       Tile.Terrain_.IsValid() ? Brushes_[Tile.Terrain_] : QBrush{Qt::gray, Qt::SolidPattern};
   Painter.setBrush(Brush);

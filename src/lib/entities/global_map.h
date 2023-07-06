@@ -124,15 +124,17 @@ public:
 
 class GlobalMap {
 public:
-  GlobalMap(/*const Utils::Registry<MapObject> &MapObjects,*/ Size Width, Size Height) noexcept
-      : Width_{Width}, Height_{Height} {
-    Tiles_.resize(Width * Height);
+  GlobalMap(/*const Utils::Registry<MapObject> &MapObjects,*/ Size Layers, Size Width,
+            Size Height) noexcept
+      : Width_{Width}, Height_{Height}, Layers_{Layers} {
+    Tiles_.resize(Width * Height * Layers);
   }
 
   Size GetWidth() const noexcept { return Width_; }
   Size GetHeight() const noexcept { return Height_; }
+  Size GetNumLayers() const noexcept { return Layers_; }
 
-  Status AddObject(Dim X, Dim Y, std::string Name, MapObjectPtr Object) noexcept {
+  Status AddObject(Dim Layer, Dim X, Dim Y, std::string Name, MapObjectPtr Object) noexcept {
     assert(Object->GetHeight() && Object->GetWidth());
     auto MaxX = X + Object->GetHeight();
     auto MaxY = Y + Object->GetWidth();
@@ -141,25 +143,25 @@ public:
       return Status::Error(ErrorCode::MapError, "Coordinates out of bounds");
     }
 
-    if (!CanPlaceObject(X, Y, *Object)) {
+    if (!CanPlaceObject(Layer, X, Y, *Object)) {
       return Status::Error(ErrorCode::MapError, "Object overlap is not allowed");
     }
     auto Id = MapObjects_.AddObject(std::move(Name), std::move(Object));
     for (Dim x = X; x < MaxX; ++x) {
       for (Dim y = Y; y < MaxY; ++y) {
-        GetTile(x, y).Object_ = Id;
+        GetTile(Layer, x, y).Object_ = Id;
       }
     }
     return Status::Success();
   }
 
-  bool CanPlaceObject(Dim X, Dim Y, const MapObject &Object) const noexcept {
+  bool CanPlaceObject(Dim Layer, Dim X, Dim Y, const MapObject &Object) const noexcept {
     auto MaxX = X + Object.GetHeight();
     auto MaxY = Y + Object.GetWidth();
 
     for (Dim x = X; x < MaxX; ++x) {
       for (Dim y = Y; y < MaxY; ++y) {
-        const auto &Tile = GetTile(x, y);
+        const auto &Tile = GetTile(Layer, x, y);
         if (Tile.Object_ || Tile.HasGrave()) {
           return false;
         }
@@ -168,12 +170,17 @@ public:
     return true;
   }
 
-  Tile &GetTile(Dim X, Dim Y) noexcept { return Tiles_[X + Y * Width_]; }
-  const Tile &GetTile(Dim X, Dim Y) const noexcept { return Tiles_[X + Y * Width_]; }
+  Tile &GetTile(Dim Layer, Dim X, Dim Y) noexcept {
+    return Tiles_[Width_ * Height_ * Layer + Y * Width_ + X];
+  }
+  const Tile &GetTile(Dim Layer, Dim X, Dim Y) const noexcept {
+    return Tiles_[Width_ * Height_ * Layer + Y * Width_ + X];
+  }
 
 private:
   Size Width_;
   Size Height_;
+  Size Layers_;
   std::vector<Tile> Tiles_;
 
   Utils::Registry<MapObjectPtr> MapObjects_;

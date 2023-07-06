@@ -66,4 +66,5 @@ private:
   QPixmap MapPixmap_;
 
   MapMouseState MapMouseState_;
+  NotAGame::Dim CurrentLayer_ = 0;
 };
