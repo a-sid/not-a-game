@@ -1,0 +1,24 @@
+{
+  "name": "guildmaster",
+  "title": {
+    "ru": "Повелитель гильдии",
+    "en": "Guild master"
+  },
+  "description": {
+    "ru": "Владыка гильдии воров, мастер коммерции и заговоров",
+    "en": "Leader of the Guild of Thieves, master of commerce and conspiracy"
+  },
+  "features": [
+    {
+      "city_upgrade_cost": {
+        "multiplier": 0.5
+      }
+    },
+    {
+      "special_thief_ops": true
+    },
+    {
+      "start_buildings": ["thief_guild"]
+    }
+  ]
+}    

@@ -1,0 +1,43 @@
+{
+  "name": "gnome",
+  "title": {
+    "ru": "Гном",
+    "en": "Gnome"
+  },
+  "description":  {
+    "ru": "Горный гном",
+    "en": "Mountain gnome"
+  },
+  "icon": null,
+  "hp": 150,
+  "armor": 0,
+  "speed": 40,
+  "exp": 150,
+  "num_attacks": 1,
+  "attack": {
+    "range": "nearest",
+    "attacks": [
+      {
+        "damage_source": "weapon",
+        "effect": "damage",
+        "value": 25,
+        "accuracy": 80,
+      }
+    ],
+  },
+  "immunes": [],
+  "wards": [],
+  "exp_for_kill": 20,
+  "evolves_to": [
+    {
+      "brewery": "gnome_warrior"
+    }
+  ],
+  "growth": [
+    {
+      "health": 15,
+      "damage": 2,
+      "exp_for_kill": 2
+    },
+  ]
+}

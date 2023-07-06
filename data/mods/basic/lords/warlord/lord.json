@@ -1,0 +1,16 @@
+{
+  "name": "warlord",
+  "title": {
+    "ru": "Военачальник",
+    "en": "Warlord"
+  },
+  "description": {
+    "ru": "Полководец, мастер битв",
+    "en": "Commander, master of battle"
+  },
+  "features": [
+    {
+      "regeneration_bonus": 15
+    },
+  ]
+}    

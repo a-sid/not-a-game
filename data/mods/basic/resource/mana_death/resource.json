@@ -1,0 +1,11 @@
+{
+  "name": "mana_air",
+  "title": {
+    "ru": "Мана смерти",
+    "en": "Mana of death"
+  },
+  "description": {
+    "ru": "Сущность смерти, неумолимой, как само время, заставляющая увядать вокруг себя всё живое во имя скорби ужасной Мортис",
+    "en": "An entity of death, relentless as the time itself, withering everything around her in the name of terrible Mortis's sorrow"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "mage",
+  "title": {
+    "ru": "Маг",
+    "en": "Mage"
+  },
+  "description": {
+    "ru": "Владыка гильдии магов, мастер заклинаний",
+    "en": "Leader of the Magic Guild, master of spells"
+  },
+  "features": [
+    {
+      "spell_learning_cost_bonus": 50,
+    },
+    {
+      "spell_use_per_turn": 2
+    },
+    {
+      "start_buildings": ["magic_guild"]
+    }
+  ]
+}    

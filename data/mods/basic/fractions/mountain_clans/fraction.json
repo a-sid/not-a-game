@@ -1,0 +1,24 @@
+{
+  "name": "mountain_clans",
+  "title": {
+    "ru": "Горные кланы",
+    "en": "Mountain clans"
+  },
+  "units": [
+    "gnome",
+    "gnome-warrior"
+  ],
+  "spells": [
+    "ice_shield"
+  ],
+  "buildings": {
+    "basic": [
+      "thief_guild",
+      "magic_guild",
+      "temple"
+    ],
+    "warriors": [
+      "brewery"
+    ]
+  }
+}

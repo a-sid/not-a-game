@@ -1,0 +1,61 @@
+{
+  "name": "basic",
+  "title": {
+    "ru": "Ванильная игра",
+    "en": "Vanilla game"
+  },
+  "description": {
+    "ru": "Ванильная игра",
+    "en": "Vanilla game"
+  },
+  "terrains": [
+    {
+      "name": "road",
+      "title": {
+        "ru": "Дорога",
+        "en": "Road"
+      },
+      "description": {
+        "ru": "Дорога",
+        "en": "Road"
+      },
+      "cost": 1
+    },
+    {
+      "name": "ground",
+      "title": {
+        "ru": "Земля",
+        "en": "Ground"
+      },
+      "description": {
+        "ru": "Земля",
+        "en": "Ground"
+      },
+      "cost": 2
+    },
+    {
+      "name":"forest",
+      "title": {
+        "ru": "Лес",
+        "en": "Forest"
+      },
+      "description": {
+        "ru": "Лес",
+        "en": "Forest"
+      },
+      "cost": 4
+    },
+    {
+      "name": "water", 
+      "title": {
+        "ru": "Вода",
+        "en": "Water"
+      },
+      "description": {
+        "ru": "Вода",
+        "en": "Water"
+      },
+      "cost": 6
+    }
+  ]
+}

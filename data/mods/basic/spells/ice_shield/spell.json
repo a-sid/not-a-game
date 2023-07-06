@@ -1,0 +1,21 @@
+{
+  "name": "ice_shield",
+  "title": {
+    "ru": "Ледяной щит",
+    "en": "Ice shield"
+  },
+  "description": {
+    "ru": "Ледяной щит",
+    "en": "Ice shield"
+  },
+  "level": 1,
+  "effect": [
+    {
+      "armor": {
+        "additive": 10
+      }
+    }
+  ],
+  "icon": null,
+  "animation": null,
+}
