@@ -127,18 +127,24 @@ void MainWindow::OnMapMouseMove(QMouseEvent *Event) {
 
   float T = (MapViewX - kBorderWidth) / kDX;
   float U = (MapViewY - kBorderWidth) / kDY;
-  auto H = GlobalMap_.GetHeight();
+  const auto W = GlobalMap_.GetWidth(), H = GlobalMap_.GetHeight();
   int MapX = (T + U - H) / 2, MapY = (U - T + H) / 2;
 
   DrawMap();
+  if (MapX < 0 || MapX >= W || MapY < 0 || MapY >= H) {
+    return;
+  }
   float Coef = 0.6;
   float Left = kBorderWidth + (H + MapX - MapY - Coef) * kDX,
         Top = kBorderWidth + (MapX + MapY - Coef + 1) * kDY;
 
   Scene_.addEllipse(Left, Top, 2 * Coef * kDX, 2 * Coef * kDY, QPen{Qt::blue});
 
+  const auto Terrain =
+      Mod_.GetTerrains().GetObjectById(GlobalMap_.GetTile(CurrentLayer_, MapX, MapY).Terrain_);
   UI_->statusbar->showMessage(
-      QString::fromStdString(fmt::format("{}, {}     {}, {}", MapViewX, MapViewY, MapX, MapY)));
+      QString::fromStdString(fmt::format("{}, {}     {}, {}  {}  {}", MapViewX, MapViewY, MapX,
+                                         MapY, Terrain.GetName(), Terrain.GetDescription())));
 }
 
 void MainWindow::OnMapMouseDown(QMouseEvent *Event) {
