@@ -50,7 +50,7 @@ class LeaderDescriptor {
   Size MaxLeadership;
   Size MaxSteps;
 
-  std::deque<Id<Perk>> Perks;
+  SmallVector<Id<Perk>, 16> Perks;
 };
 
 struct TraitGrowth {
@@ -60,6 +60,7 @@ struct TraitGrowth {
   Size Health = 0;
   Size Damage = 0;
   Size Armor = 0;
+  Size Speed = 0;
   Size ExpForKill = 0;
   Size Steps = 0;
 };
@@ -75,10 +76,12 @@ public:
   virtual void RecomputeEffects(const SmallVector<Effect, 16> &Effects) noexcept;
 
   T GetBaseValue() const noexcept { return BaseValue_; }
+  T GetEffectiveValue() const noexcept { return EffectiveValue_; }
   T GetValue() const noexcept { return Value_; }
 
 protected:
   T BaseValue_;
+  T EffectiveValue_;
   T Value_;
 };
 
@@ -112,6 +115,8 @@ struct UnitDescriptor {
   Size Damage;
   Size Defence;
 
+  Size Speed;
+
   Size ExpForKill;
 
   Bitset Immunes;
@@ -120,19 +125,24 @@ struct UnitDescriptor {
   UnitWidth Width;
   UnitHeight Height;
 
+  Id<UnitDescriptor> PreviousForm;
+
   Id<LeaderDescriptor> LeaderDescriptorId;
+};
+
+class Inventory {
+
+  std::unordered_map<Id<Item>, Size> Items_;
 };
 
 class LeaderData {
   std::string Name_;
 
-  Size Leadership_;
-  Size MaxLeadership_;
+  SizeTrait Leadership_;
 
-  Size Steps_;
-  Size MaxSteps_;
+  SizeTrait Steps_;
 
-  std::deque<Id<Item>> Items_;
+  Inventory Items_;
 };
 
 class Unit {
@@ -140,7 +150,7 @@ public:
   Coord GetPosition() const noexcept { return Position_; }
   void SetPosition(Coord Position) noexcept { Position_ = Position; }
 
-  bool IsAlive() const noexcept { return Health_ != 0; }
+  bool IsAlive() const noexcept { return Health_.GetValue() != 0; }
 
   bool IsLeader() const noexcept { return Leadership_ != 0; }
 
@@ -154,13 +164,11 @@ private:
 
   Size Level_;
 
-  Size Health_;
-  Size MaxHealth_;
+  SizeTrait Health_;
+  SizeTrait Experience_;
+  SizeTrait Speed_;
 
-  Size Experience_;
-  Size MaxExperience_;
-
-  Size Damage_;
+  SizeTrait Damage_;
 
   Size Leadership_;
 

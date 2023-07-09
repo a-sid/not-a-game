@@ -1,5 +1,5 @@
-#include "mainwindow.h"
-#include "./ui_mainwindow.h"
+#include "global_map_window.h"
+#include "./ui_global_map_window.h"
 
 #include <cmath>
 #include <fmt/format.h>
@@ -22,8 +22,8 @@ constexpr int kBorderWidth = 200;
 
 } // namespace
 
-MainWindow::MainWindow(QWidget *Parent) noexcept
-    : QMainWindow{Parent}, UI_{new Ui::MainWindow}, Mod_{LoadMod()}, GlobalMap_{CreateMap()} {
+GlobalMapWindow::GlobalMapWindow(QWidget *Parent) noexcept
+    : QMainWindow{Parent}, UI_{new Ui::GlobalMapWindow}, Mod_{LoadMod()}, GlobalMap_{CreateMap()} {
   UI_->setupUi(this);
 
   UI_->GlobalMapView->setRenderHint(QPainter::Antialiasing);
@@ -31,9 +31,9 @@ MainWindow::MainWindow(QWidget *Parent) noexcept
   MapPixmap_ = QPixmap{static_cast<int>((W + H) * kDX + kBorderWidth * 2),
                        static_cast<int>((W + H) * kDY) + kBorderWidth * 2};
 
-  connect(UI_->GlobalMapView, &MapView::MouseMove, this, &MainWindow::OnMapMouseMove);
-  connect(UI_->GlobalMapView, &MapView::MouseDown, this, &MainWindow::OnMapMouseDown);
-  connect(UI_->GlobalMapView, &MapView::MouseUp, this, &MainWindow::OnMapMouseUp);
+  connect(UI_->GlobalMapView, &MapView::MouseMove, this, &GlobalMapWindow::OnMapMouseMove);
+  connect(UI_->GlobalMapView, &MapView::MouseDown, this, &GlobalMapWindow::OnMapMouseDown);
+  connect(UI_->GlobalMapView, &MapView::MouseUp, this, &GlobalMapWindow::OnMapMouseUp);
 
   QBrush WaterBrush{Qt::cyan, Qt::SolidPattern};
   QBrush GroundBrush{QColor{160, 183, 30}, Qt::SolidPattern};
@@ -50,11 +50,13 @@ MainWindow::MainWindow(QWidget *Parent) noexcept
   DrawMap();
 }
 
-MainWindow::~MainWindow() noexcept { delete UI_; }
+GlobalMapWindow::~GlobalMapWindow() noexcept { delete UI_; }
 
-NotAGame::Mod MainWindow::LoadMod() noexcept { return NotAGame::Mod::Load(std::string{"basic"}); }
+NotAGame::Mod GlobalMapWindow::LoadMod() noexcept {
+  return NotAGame::Mod::Load(std::string{"basic"});
+}
 
-NotAGame::GlobalMap MainWindow::CreateMap() noexcept {
+NotAGame::GlobalMap GlobalMapWindow::CreateMap() noexcept {
   NotAGame::GlobalMap M(1, 16, 16);
   const auto &Terrains = Mod_.GetTerrains();
   const auto NumTerrains = Terrains.size();
@@ -67,52 +69,66 @@ NotAGame::GlobalMap MainWindow::CreateMap() noexcept {
     }
   }
 
+  auto Cap = std::make_unique<Capital>(Mod_.GetCapitalSettings(),
+                                       Named{"1st_capital", "Capital", "capitol"}, 0, 1, 1);
+  M.AddObject(0, 1, 1, "1st_capital", std::move(Cap));
+
   return M;
 }
 
-void MainWindow::DrawTile(QPixmap &Pixmap, QPainter &Painter, int X, int Y,
-                          Size MapHeight) noexcept {
+void GlobalMapWindow::DrawRect(QPainter &Painter, QPen Pen, QBrush Brush, int X, int Y, int Width,
+                               int Height) noexcept {
+  auto MapHeight = GlobalMap_.GetHeight();
   Painter.save();
   Painter.translate(kBorderWidth + (MapHeight + X - Y) * kDX, kBorderWidth + (X + Y) * kDY);
 
-  const auto &Tile = GlobalMap_.GetTile(CurrentLayer_, X, Y);
-  QBrush Brush =
-      Tile.Terrain_.IsValid() ? Brushes_[Tile.Terrain_] : QBrush{Qt::gray, Qt::SolidPattern};
   Painter.setBrush(Brush);
-  Painter.setPen(Qt::yellow);
-  QPointF Points[] = {{0, 0}, {kDX, kDY}, {0, 2 * kDY}, {-kDX, kDY}};
+  Painter.setPen(Pen);
+  QPointF Points[] = {{0, 0},
+                      {kDX * Width, kDY * Width},
+                      {kDX * (Width - Height), kDY * (Width + Height)},
+                      {-Height * kDX, Height * kDY}};
   Painter.drawPolygon(Points, std::size(Points));
   Painter.restore();
 }
 
-void MainWindow::DrawMap() noexcept {
+void GlobalMapWindow::DrawTile(QPainter &Painter, int X, int Y) noexcept {
+  const auto &Tile = GlobalMap_.GetTile(CurrentLayer_, X, Y);
+  QBrush Brush =
+      Tile.Terrain_.IsValid() ? Brushes_[Tile.Terrain_] : QBrush{Qt::gray, Qt::SolidPattern};
+  DrawRect(Painter, QPen{Qt::yellow}, Brush, X, Y, 1, 1);
+}
+
+void GlobalMapWindow::DrawObject(QPainter &Painter, const MapObject &Object) noexcept {
+  switch (Object.GetKind()) {
+  case MapObject::Kind::Capital: {
+    DrawRect(Painter, QPen{Qt::red, 2}, QBrush{Qt::darkRed}, Object.GetX(), Object.GetY(),
+             Object.GetWidth(), Object.GetHeight());
+    break;
+  }
+  default:
+    assert(false && "Unsupported kind!");
+  }
+}
+
+void GlobalMapWindow::DrawMap() noexcept {
   Scene_.clear();
   MapPixmap_.fill(Qt::black);
   QPainter Painter{&MapPixmap_};
   Painter.setRenderHint(QPainter::Antialiasing, true);
   for (Size X = 0, XE = GlobalMap_.GetWidth(); X < XE; ++X) {
     for (Size Y = 0, YE = GlobalMap_.GetHeight(); Y < YE; ++Y) {
-      DrawTile(MapPixmap_, Painter, X, Y, GlobalMap_.GetHeight());
+      DrawTile(Painter, X, Y);
     }
+  }
+  for (auto ObjId : GlobalMap_.GetObjectsOnLayer(CurrentLayer_)) {
+    DrawObject(Painter, GlobalMap_.GetObject(ObjId));
   }
   Scene_.addPixmap(MapPixmap_);
   UI_->GlobalMapView->setScene(&Scene_);
 }
 
-void MapView::mouseMoveEvent(QMouseEvent *event) {
-  emit MouseMove(event);
-  QGraphicsView::mouseMoveEvent(event);
-}
-void MapView::mousePressEvent(QMouseEvent *event) {
-  emit MouseDown(event);
-  QGraphicsView::mouseMoveEvent(event);
-}
-void MapView::mouseReleaseEvent(QMouseEvent *event) {
-  emit MouseUp(event);
-  QGraphicsView::mouseReleaseEvent(event);
-}
-
-void MainWindow::OnMapMouseMove(QMouseEvent *Event) {
+void GlobalMapWindow::OnMapMouseMove(QMouseEvent *Event) {
   if (MapMouseState_.IsDrag) {
     qDebug() << MapMouseState_.ScrollingPos.x() << ", " << Event->x() << ", "
              << MapMouseState_.MouseDownPos.x();
@@ -147,11 +163,26 @@ void MainWindow::OnMapMouseMove(QMouseEvent *Event) {
                                          MapY, Terrain.GetName(), Terrain.GetDescription())));
 }
 
-void MainWindow::OnMapMouseDown(QMouseEvent *Event) {
+void GlobalMapWindow::OnMapMouseDown(QMouseEvent *Event) {
   MapMouseState_.IsDrag = true;
   MapMouseState_.MouseDownPos = Event->pos();
   MapMouseState_.ScrollingPos = {UI_->GlobalMapView->horizontalScrollBar()->value(),
                                  UI_->GlobalMapView->verticalScrollBar()->value()};
 }
 
-void MainWindow::OnMapMouseUp(QMouseEvent *Event) { MapMouseState_.IsDrag = false; }
+void GlobalMapWindow::OnMapMouseUp(QMouseEvent *Event) { MapMouseState_.IsDrag = false; }
+
+void MapView::mouseMoveEvent(QMouseEvent *event) {
+  emit MouseMove(event);
+  QGraphicsView::mouseMoveEvent(event);
+}
+
+void MapView::mousePressEvent(QMouseEvent *event) {
+  emit MouseDown(event);
+  QGraphicsView::mouseMoveEvent(event);
+}
+
+void MapView::mouseReleaseEvent(QMouseEvent *event) {
+  emit MouseUp(event);
+  QGraphicsView::mouseReleaseEvent(event);
+}

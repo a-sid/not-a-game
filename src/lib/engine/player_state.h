@@ -20,7 +20,7 @@ private:
   std::unordered_set<Id<MapObject>> Towns_;
   std::unordered_set<Id<Spell>> Spells_;
   std::unordered_set<Id<Building>> Buildings_;
-  SmallVector<Id<Squad>, 32> Squads_;
+  SmallVector<Id<Squad>, 64> Squads_;
 };
 
 } // namespace NotAGame

@@ -22,7 +22,7 @@ enum class EffectTarget {
   SetValue,
 };
 
-class Effect {
+class SubEffect {
 public:
 private:
   EffectKind EffectKind_;
@@ -31,4 +31,9 @@ private:
 
   Size TurnsRemaining_;
 };
+
+class Effect {
+  SmallVector<SubEffect, 4> SubEffects_;
+};
+
 } // namespace NotAGame

@@ -11,6 +11,7 @@
 #include <deque>
 #include <memory>
 #include <optional>
+#include <span>
 #include <vector>
 
 namespace NotAGame {
@@ -35,18 +36,25 @@ class MapObject : public Named {
 public:
   enum Kind { Capital, Town, Shop, MagicShop, TrainingCamp, Resource, Ruins, Other };
 
-  MapObject(Named Name, Kind Kind, std::optional<Coord> EntrancePos, Size Width,
-            Size Height) noexcept
-      : Named{std::move(Name)}, Kind_{Kind}, Width_{Width}, Height_{Height}, EntrancePos_{
-                                                                                 EntrancePos} {}
+  MapObject(Named Name, Kind Kind, Dim Layer, Dim X, Dim Y, Size Width, Size Height,
+            std::optional<Coord> EntrancePos) noexcept
+      : Named{std::move(Name)}, Kind_{Kind}, Layer_{Layer}, X_{X}, Y_{Y}, Width_{Width},
+        Height_{Height}, EntrancePos_{EntrancePos} {}
 
+  Kind GetKind() const noexcept { return Kind_; }
+  Dim GetLayer() const noexcept { return Layer_; }
+  Dim GetX() const noexcept { return X_; }
+  Dim GetY() const noexcept { return Y_; }
   Size GetWidth() const noexcept { return Width_; }
   Size GetHeight() const noexcept { return Height_; }
   std::optional<Coord> GetEntrancePos() noexcept { return EntrancePos_; }
 
-private:
+protected:
   Kind Kind_;
   Id<Animation> AnimationId_;
+  Dim Layer_;
+  Dim X_;
+  Dim Y_;
   Size Width_;
   Size Height_;
   std::optional<Coord> EntrancePos_;
@@ -79,10 +87,27 @@ private:
   BattleResults BattleResults_;
 };
 
+struct TownSettings {
+  Coord EntrancePos;
+  Dim Width;
+  Dim Height;
+};
+
+struct CapitalSettings {
+  Coord EntrancePos;
+  Dim Width;
+  Dim Height;
+};
+
 class Town : public MapObject {
 public:
-  Town(const TownSettings &Settings, Named Name, Size Level) noexcept;
-  Town(Named Name, Coord EntrancePos, Dim Width, Dim Height, Size Level) noexcept;
+  Town(const TownSettings &Settings, Named Name, Dim Layer, Dim X, Dim Y, Size Level) noexcept;
+  Town(Named Name, Dim Layer, Dim X, Dim Y, Dim Width, Dim Height, Coord EntrancePos,
+       Size Level) noexcept;
+
+  Id<Player> GetOwner() const noexcept { return Owner_; }
+  void SetOwner(Id<Player> PlayerId) noexcept { Owner_ = PlayerId; }
+  bool IsNeutral() const noexcept { return Owner_.IsInvalid(); }
 
 private:
   std::string Name_;
@@ -94,8 +119,11 @@ private:
 
 class Capital : public Town {
 public:
-  Capital(const CapitalSettings &Settings, Named Name)
-      : Town{std::move(Name), Settings.EntrancePos, Settings.Width, Settings.Height, MAX_SIZE} {}
+  Capital(const CapitalSettings &Settings, Named Name, Dim Layer, Dim X, Dim Y)
+      : Town{std::move(Name),      Layer,   X, Y, Settings.Width, Settings.Height,
+             Settings.EntrancePos, MAX_SIZE} {
+    Kind_ = Kind::Capital;
+  }
 
 private:
 };
@@ -107,7 +135,7 @@ public:
   std::optional<Id<Player>> Owner_;
   std::optional<Grave> Grave_;
   Id<MapObjectPtr> Object_ = NullId;
-  Id<Squad> Squad_;
+  Id<Squad> Squad_ = NullId;
 
   bool HasGrave() const noexcept { return Grave_.has_value(); }
   Grave &AddGrave(BattleResult Result) noexcept {
@@ -118,8 +146,6 @@ public:
     }
     return *Grave_;
   }
-
-  std::string GetDescription() const noexcept;
 };
 
 class GlobalMap {
@@ -128,6 +154,7 @@ public:
             Size Height) noexcept
       : Width_{Width}, Height_{Height}, Layers_{Layers} {
     Tiles_.resize(Width * Height * Layers);
+    ObjectsByLayer_.resize(Layers);
   }
 
   Size GetWidth() const noexcept { return Width_; }
@@ -147,6 +174,7 @@ public:
       return Status::Error(ErrorCode::MapError, "Object overlap is not allowed");
     }
     auto Id = MapObjects_.AddObject(std::move(Name), std::move(Object));
+    ObjectsByLayer_[Layer].push_back(Id);
     for (Dim x = X; x < MaxX; ++x) {
       for (Dim y = Y; y < MaxY; ++y) {
         GetTile(Layer, x, y).Object_ = Id;
@@ -162,7 +190,7 @@ public:
     for (Dim x = X; x < MaxX; ++x) {
       for (Dim y = Y; y < MaxY; ++y) {
         const auto &Tile = GetTile(Layer, x, y);
-        if (Tile.Object_ || Tile.HasGrave()) {
+        if (Tile.Object_.IsValid() || Tile.HasGrave()) {
           return false;
         }
       }
@@ -177,6 +205,14 @@ public:
     return Tiles_[Width_ * Height_ * Layer + Y * Width_ + X];
   }
 
+  const MapObject &GetObject(Id<MapObjectPtr> Id) const noexcept {
+    return *MapObjects_.GetObjectById(Id);
+  }
+
+  std::span<const Id<MapObjectPtr>> GetObjectsOnLayer(Dim Layer) const noexcept {
+    return ObjectsByLayer_[Layer];
+  }
+
 private:
   Size Width_;
   Size Height_;
@@ -184,6 +220,7 @@ private:
   std::vector<Tile> Tiles_;
 
   Utils::Registry<MapObjectPtr> MapObjects_;
+  std::vector<std::vector<Id<MapObjectPtr>>> ObjectsByLayer_;
   Utils::Registry<Town> Towns_;
 };
 

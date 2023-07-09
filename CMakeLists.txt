@@ -41,6 +41,7 @@ FetchContent_MakeAvailable(fmt)
 set(TS_FILES not-a-game_en_GB.ts)
 
 include_directories(${CMAKE_SOURCE_DIR}/src/lib)
+include_directories(${CMAKE_SOURCE_DIR}/src)
 
 add_library(ui STATIC
   src/lib/ui/animation.h
@@ -79,7 +80,7 @@ add_library(state STATIC
   src/lib/state/view.h
 )
 
-add_library(engine
+add_library(engine STATIC
   src/lib/engine/engine.h
   src/lib/engine/event.h
   src/lib/engine/map_view.h
@@ -89,9 +90,12 @@ add_library(engine
 
 add_executable(not-a-game
   main.cpp
-  mainwindow.cpp
-  mainwindow.h
-  mainwindow.ui
+  src/client/ui/capital_view_window.h
+  src/client/ui/capital_view_window.cpp
+  src/client/ui/capital_view_window.ui
+  src/client/ui/global_map_window.cpp
+  src/client/ui/global_map_window.h
+  src/client/ui/global_map_window.ui
   src/lib/status/status.cpp
   src/lib/status/status.h
   src/lib/game/map.h

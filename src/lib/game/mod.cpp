@@ -25,6 +25,16 @@ template <typename Value> Terrain LoadTerrain(const Value &V) noexcept {
   return Terrain{std::move(Named), BaseCost};
 }
 
+template <typename Settings, typename Value> Settings LoadTownSettings(const Value &V) noexcept {
+  Settings S;
+  S.Width = V["width"].GetUint();
+  S.Height = V["height"].GetUint();
+  const auto &EntrancePos = V["entrance_pos"];
+  S.EntrancePos.X = EntrancePos["x"].GetUint();
+  S.EntrancePos.Y = EntrancePos["y"].GetUint();
+  return S;
+}
+
 Mod::Mod(Named Name) noexcept : Named{std::move(Name)} {}
 
 Mod Mod::Load(const std::filesystem::path &Path) noexcept {
@@ -40,6 +50,9 @@ Mod Mod::Load(const std::filesystem::path &Path) noexcept {
     auto Name = T.GetName();
     M.Terrains_.AddObject(std::move(Name), std::move(T));
   }
+
+  M.TownSettings_ = LoadTownSettings<TownSettings>(Doc["town_settings"]);
+  M.CapitalSettings_ = LoadTownSettings<CapitalSettings>(Doc["capital_settings"]);
 
   return M;
 }

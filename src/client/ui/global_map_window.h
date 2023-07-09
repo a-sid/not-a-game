@@ -9,7 +9,7 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
-class MainWindow;
+class GlobalMapWindow;
 }
 QT_END_NAMESPACE
 
@@ -32,12 +32,12 @@ signals:
   void MouseUp(QMouseEvent *event);
 };
 
-class MainWindow : public QMainWindow {
+class GlobalMapWindow : public QMainWindow {
   Q_OBJECT
 
 public:
-  MainWindow(QWidget *Parent = nullptr) noexcept;
-  ~MainWindow() noexcept;
+  GlobalMapWindow(QWidget *Parent = nullptr) noexcept;
+  ~GlobalMapWindow() noexcept;
 
 public slots:
   void OnMapMouseMove(QMouseEvent *ev);
@@ -54,10 +54,12 @@ private:
   NotAGame::Mod LoadMod() noexcept;
   NotAGame::GlobalMap CreateMap() noexcept;
   void DrawMap() noexcept;
-  void DrawTile(QPixmap &Pixmap, QPainter &Painter, int X, int Y,
-                NotAGame::Size MapHeight) noexcept;
+  void DrawRect(QPainter &Painter, QPen Pen, QBrush Brush, int X, int Y, int Width,
+                int Height) noexcept;
+  void DrawTile(QPainter &Painter, int X, int Y) noexcept;
+  void DrawObject(QPainter &Painter, const NotAGame::MapObject &Object) noexcept;
 
-  Ui::MainWindow *UI_;
+  Ui::GlobalMapWindow *UI_;
   QGraphicsScene Scene_;
   NotAGame::Mod Mod_;
   NotAGame::GlobalMap GlobalMap_;

@@ -2,10 +2,13 @@
 
 namespace NotAGame {
 
-Town::Town(const TownSettings &Settings, Named Name, Size Level) noexcept
-    : Town{std::move(Name), Settings.EntrancePos, Settings.Width, Settings.Height, Level} {}
+Town::Town(const TownSettings &Settings, Named Name, Dim Layer, Dim X, Dim Y, Size Level) noexcept
+    : Town{std::move(Name),      Layer, X, Y, Settings.Width, Settings.Height,
+           Settings.EntrancePos, Level} {}
 
-Town::Town(Named Name, Coord EntrancePos, Dim Width, Dim Height, Size Level) noexcept
-    : MapObject{std::move(Name), Kind::Town, EntrancePos, Width, Height}, Level_{Level} {}
+Town::Town(Named Name, Dim Layer, Dim X, Dim Y, Dim Width, Dim Height, Coord EntrancePos,
+           Size Level) noexcept
+    : MapObject{std::move(Name), Kind::Town, Layer, X, Y, Width, Height, EntrancePos}, Level_{
+                                                                                           Level} {}
 
 } // namespace NotAGame

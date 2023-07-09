@@ -27,6 +27,8 @@ public:
   static Mod Load(const std::string &Name) noexcept;
 
   const auto &GetTerrains() const noexcept { return Terrains_; }
+  const TownSettings &GetTownSettings() const noexcept { return TownSettings_; }
+  const CapitalSettings &GetCapitalSettings() const noexcept { return CapitalSettings_; }
 
 private:
   explicit Mod(Named Name) noexcept;
@@ -42,6 +44,9 @@ private:
   Utils::Registry<Building> Buildings_;
   Utils::Registry<Fraction> Fractions_;
   Utils::Registry<Lord> Lords_;
+
+  TownSettings TownSettings_;
+  CapitalSettings CapitalSettings_;
 };
 
 } // namespace NotAGame

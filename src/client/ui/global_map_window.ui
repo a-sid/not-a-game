@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>GlobalMapWindow</class>
+ <widget class="QMainWindow" name="GlobalMapWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -174,7 +174,7 @@
   <customwidget>
    <class>MapView</class>
    <extends>QGraphicsView</extends>
-   <header>mainwindow.h</header>
+   <header>client/ui/global_map_window.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
