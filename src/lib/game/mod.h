@@ -4,6 +4,7 @@
 #include "entities/global_map.h"
 #include "entities/lord.h"
 #include "entities/resource.h"
+#include "entities/squad.h"
 #include "entities/unit.h"
 #include "util/registry.h"
 
@@ -29,6 +30,7 @@ public:
   const auto &GetTerrains() const noexcept { return Terrains_; }
   const TownSettings &GetTownSettings() const noexcept { return TownSettings_; }
   const CapitalSettings &GetCapitalSettings() const noexcept { return CapitalSettings_; }
+  const GridSettings &GetGridSettings() const noexcept { return GridSettings_; }
 
 private:
   explicit Mod(Named Name) noexcept;
@@ -47,6 +49,7 @@ private:
 
   TownSettings TownSettings_;
   CapitalSettings CapitalSettings_;
+  GridSettings GridSettings_;
 };
 
 } // namespace NotAGame

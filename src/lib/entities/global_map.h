@@ -47,7 +47,7 @@ public:
   Dim GetY() const noexcept { return Y_; }
   Size GetWidth() const noexcept { return Width_; }
   Size GetHeight() const noexcept { return Height_; }
-  std::optional<Coord> GetEntrancePos() noexcept { return EntrancePos_; }
+  std::optional<Coord> GetEntrancePos() const noexcept { return EntrancePos_; }
 
 protected:
   Kind Kind_;
@@ -163,8 +163,8 @@ public:
 
   Status AddObject(Dim Layer, Dim X, Dim Y, std::string Name, MapObjectPtr Object) noexcept {
     assert(Object->GetHeight() && Object->GetWidth());
-    auto MaxX = X + Object->GetHeight();
-    auto MaxY = Y + Object->GetWidth();
+    auto MaxX = X + Object->GetWidth();
+    auto MaxY = Y + Object->GetHeight();
 
     if (MaxX > Width_ || MaxY > Height_) {
       return Status::Error(ErrorCode::MapError, "Coordinates out of bounds");

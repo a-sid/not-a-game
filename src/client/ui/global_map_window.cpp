@@ -1,5 +1,6 @@
 #include "global_map_window.h"
 #include "./ui_global_map_window.h"
+#include "capital_view_window.h"
 
 #include <cmath>
 #include <fmt/format.h>
@@ -34,6 +35,7 @@ GlobalMapWindow::GlobalMapWindow(QWidget *Parent) noexcept
   connect(UI_->GlobalMapView, &MapView::MouseMove, this, &GlobalMapWindow::OnMapMouseMove);
   connect(UI_->GlobalMapView, &MapView::MouseDown, this, &GlobalMapWindow::OnMapMouseDown);
   connect(UI_->GlobalMapView, &MapView::MouseUp, this, &GlobalMapWindow::OnMapMouseUp);
+  connect(UI_->btnCapital, &QPushButton::clicked, this, &GlobalMapWindow::OpenCapitalScreen);
 
   QBrush WaterBrush{Qt::cyan, Qt::SolidPattern};
   QBrush GroundBrush{QColor{160, 183, 30}, Qt::SolidPattern};
@@ -111,6 +113,20 @@ void GlobalMapWindow::DrawObject(QPainter &Painter, const MapObject &Object) noe
   }
 }
 
+std::optional<QPoint> GlobalMapWindow::GetMapCoord(QPoint MousePos) const noexcept {
+  int MapViewX = MousePos.x() + UI_->GlobalMapView->horizontalScrollBar()->value();
+  int MapViewY = MousePos.y() + UI_->GlobalMapView->verticalScrollBar()->value();
+
+  float T = (MapViewX - kBorderWidth) / kDX;
+  float U = (MapViewY - kBorderWidth) / kDY;
+  const auto W = GlobalMap_.GetWidth(), H = GlobalMap_.GetHeight();
+  int MapX = (T + U - H) / 2, MapY = (U - T + H) / 2;
+  if (MapX < 0 || MapX >= W || MapY < 0 || MapY >= H) {
+    return std::nullopt;
+  }
+  return QPoint{MapX, MapY};
+}
+
 void GlobalMapWindow::DrawMap() noexcept {
   Scene_.clear();
   MapPixmap_.fill(Qt::black);
@@ -129,7 +145,8 @@ void GlobalMapWindow::DrawMap() noexcept {
 }
 
 void GlobalMapWindow::OnMapMouseMove(QMouseEvent *Event) {
-  if (MapMouseState_.IsDrag) {
+  if (MapMouseState_.IsMouseDown) {
+    MapMouseState_.IsDrag = true;
     qDebug() << MapMouseState_.ScrollingPos.x() << ", " << Event->x() << ", "
              << MapMouseState_.MouseDownPos.x();
     UI_->GlobalMapView->horizontalScrollBar()->setValue(
@@ -138,18 +155,18 @@ void GlobalMapWindow::OnMapMouseMove(QMouseEvent *Event) {
                                                       MapMouseState_.MouseDownPos.y());
   }
 
+  DrawMap();
+
   int MapViewX = Event->x() + UI_->GlobalMapView->horizontalScrollBar()->value();
   int MapViewY = Event->y() + UI_->GlobalMapView->verticalScrollBar()->value();
 
-  float T = (MapViewX - kBorderWidth) / kDX;
-  float U = (MapViewY - kBorderWidth) / kDY;
-  const auto W = GlobalMap_.GetWidth(), H = GlobalMap_.GetHeight();
-  int MapX = (T + U - H) / 2, MapY = (U - T + H) / 2;
-
-  DrawMap();
-  if (MapX < 0 || MapX >= W || MapY < 0 || MapY >= H) {
+  const auto MapCoord = GetMapCoord({Event->x(), Event->y()});
+  if (!MapCoord) {
     return;
   }
+  const auto MapX = MapCoord->x(), MapY = MapCoord->y();
+
+  const auto W = GlobalMap_.GetWidth(), H = GlobalMap_.GetHeight();
   float Coef = 0.6;
   float Left = kBorderWidth + (H + MapX - MapY - Coef) * kDX,
         Top = kBorderWidth + (MapX + MapY - Coef + 1) * kDY;
@@ -164,13 +181,46 @@ void GlobalMapWindow::OnMapMouseMove(QMouseEvent *Event) {
 }
 
 void GlobalMapWindow::OnMapMouseDown(QMouseEvent *Event) {
-  MapMouseState_.IsDrag = true;
+  MapMouseState_.IsMouseDown = true;
   MapMouseState_.MouseDownPos = Event->pos();
   MapMouseState_.ScrollingPos = {UI_->GlobalMapView->horizontalScrollBar()->value(),
                                  UI_->GlobalMapView->verticalScrollBar()->value()};
 }
 
-void GlobalMapWindow::OnMapMouseUp(QMouseEvent *Event) { MapMouseState_.IsDrag = false; }
+void GlobalMapWindow::OnMapMouseUp(QMouseEvent *Event) {
+  if (!MapMouseState_.IsDrag) { // click
+    qDebug() << "Click\n";
+    if (const auto MapCoord = GetMapCoord({Event->x(), Event->y()})) {
+      if (auto Obj = GlobalMap_.GetTile(CurrentLayer_, MapCoord->x(), MapCoord->y()).Object_;
+          Obj.IsValid()) {
+        HandleObjectClick(*MapCoord, Obj);
+      }
+    }
+  }
+  MapMouseState_.IsDrag = false;
+  MapMouseState_.IsMouseDown = false;
+}
+
+void GlobalMapWindow::HandleObjectClick(QPoint MapCoord, Id<MapObjectPtr> ObjectId) noexcept {
+  const auto &Obj = GlobalMap_.GetObject(ObjectId);
+  if (const auto Entrance = Obj.GetEntrancePos()) {
+    if (MapCoord.x() == Obj.GetX() + Entrance->X && MapCoord.y() == Obj.GetY() + Entrance->Y) {
+      // OnEntranceClick(Obj);
+    }
+    switch (Obj.GetKind()) {
+    case MapObject::Kind::Capital:
+      OpenCapitalScreen();
+      break;
+    default:
+      break;
+    }
+  }
+}
+
+void GlobalMapWindow::OpenCapitalScreen() {
+  auto W = new CapitalViewWindow{this};
+  W->show();
+}
 
 void MapView::mouseMoveEvent(QMouseEvent *event) {
   emit MouseMove(event);

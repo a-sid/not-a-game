@@ -38,6 +38,12 @@ FetchContent_Declare(fmt
 )
 FetchContent_MakeAvailable(fmt)
 
+FetchContent_Declare(ranges
+  GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
+  GIT_TAG master
+)
+FetchContent_MakeAvailable(ranges)
+
 set(TS_FILES not-a-game_en_GB.ts)
 
 include_directories(${CMAKE_SOURCE_DIR}/src/lib)
@@ -90,12 +96,18 @@ add_library(engine STATIC
 
 add_executable(not-a-game
   main.cpp
-  src/client/ui/capital_view_window.h
   src/client/ui/capital_view_window.cpp
+  src/client/ui/capital_view_window.h
   src/client/ui/capital_view_window.ui
-  src/client/ui/global_map_window.cpp
   src/client/ui/global_map_window.h
+  src/client/ui/global_map_window.cpp
   src/client/ui/global_map_window.ui
+  src/client/ui/unit_widget.cpp
+  src/client/ui/unit_widget.h
+  src/client/ui/unit_widget.ui
+  src/client/ui/squad_widget.cpp
+  src/client/ui/squad_widget.h
+  src/client/ui/squad_widget.ui
   src/lib/status/status.cpp
   src/lib/status/status.h
   src/lib/game/map.h

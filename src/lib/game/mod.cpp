@@ -8,6 +8,8 @@
 
 namespace NotAGame {
 
+namespace {
+
 template <typename Value> std::string GetString(const Value &V) noexcept {
   return std::string{V.GetString(), V.GetStringLength()};
 }
@@ -35,6 +37,15 @@ template <typename Settings, typename Value> Settings LoadTownSettings(const Val
   return S;
 }
 
+template <typename Value> GridSettings LoadGridSettings(const Value &V) noexcept {
+  GridSettings S;
+  S.Width = V["width"].GetUint();
+  S.Height = V["height"].GetUint();
+  return S;
+}
+
+} // namespace
+
 Mod::Mod(Named Name) noexcept : Named{std::move(Name)} {}
 
 Mod Mod::Load(const std::filesystem::path &Path) noexcept {
@@ -53,6 +64,7 @@ Mod Mod::Load(const std::filesystem::path &Path) noexcept {
 
   M.TownSettings_ = LoadTownSettings<TownSettings>(Doc["town_settings"]);
   M.CapitalSettings_ = LoadTownSettings<CapitalSettings>(Doc["capital_settings"]);
+  M.GridSettings_ = LoadGridSettings(Doc["grid_settings"]);
 
   return M;
 }

@@ -43,9 +43,11 @@ public slots:
   void OnMapMouseMove(QMouseEvent *ev);
   void OnMapMouseDown(QMouseEvent *ev);
   void OnMapMouseUp(QMouseEvent *ev);
+  void OpenCapitalScreen();
 
 private:
   struct MapMouseState {
+    bool IsMouseDown = false;
     bool IsDrag = false;
     QPoint MouseDownPos;
     QPoint ScrollingPos;
@@ -58,6 +60,10 @@ private:
                 int Height) noexcept;
   void DrawTile(QPainter &Painter, int X, int Y) noexcept;
   void DrawObject(QPainter &Painter, const NotAGame::MapObject &Object) noexcept;
+
+  void HandleObjectClick(QPoint MapCoord, NotAGame::Id<NotAGame::MapObjectPtr> Object) noexcept;
+
+  std::optional<QPoint> GetMapCoord(QPoint MousePos) const noexcept;
 
   Ui::GlobalMapWindow *UI_;
   QGraphicsScene Scene_;

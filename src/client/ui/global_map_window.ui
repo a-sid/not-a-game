@@ -68,7 +68,7 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QGraphicsView" name="graphicsView_2">
+        <widget class="QGraphicsView" name="gfxMiniMap">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>

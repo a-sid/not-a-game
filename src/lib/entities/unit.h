@@ -37,10 +37,6 @@ private:
 
 using Bitset = uint64_t;
 constexpr Size kMaxBitsetId = sizeof(Bitset) * __CHAR_BIT__;
-
-enum class UnitWidth : Dim { NORMAL = 1, BIG = 2 };
-enum class UnitHeight : Dim { NORMAL = 1, BIG = 2 };
-
 template <typename T> Dim ToDim(T Val) noexcept { return static_cast<Dim>(Val); }
 
 class Perk;
@@ -122,8 +118,8 @@ struct UnitDescriptor {
   Bitset Immunes;
   Bitset Wards;
 
-  UnitWidth Width;
-  UnitHeight Height;
+  uint8_t Width;
+  uint8_t Height;
 
   Id<UnitDescriptor> PreviousForm;
 
@@ -154,8 +150,11 @@ public:
 
   bool IsLeader() const noexcept { return Leadership_ != 0; }
 
-  UnitWidth GetWidth() const noexcept { return Registry_.GetObjectById(Descriptor_).Width; }
-  UnitHeight GetHeight() const noexcept { return Registry_.GetObjectById(Descriptor_).Height; }
+  uint8_t GetWidth() const noexcept { return Registry_.GetObjectById(Descriptor_).Width; }
+  uint8_t GetHeight() const noexcept { return Registry_.GetObjectById(Descriptor_).Height; }
+
+  Size GetLevel() const noexcept { return Level_; }
+  const SizeTrait &GetHealth() const noexcept { return Health_; }
 
 private:
   Utils::Registry<UnitDescriptor> Registry_;

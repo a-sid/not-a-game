@@ -31,14 +31,18 @@ public:
     return *Object;
   }
 
+  T &GetObjectById(Id<T> Id) noexcept { return const_cast<T &>(GetObjectById(Id)); }
+
   const T *TryGetObjectByKey(const Key &Key) const noexcept {
     auto Found = MapFindPtr(Objects_, Key);
     return Found ? &Storage_[*Found] : nullptr;
   }
+  T *TryGetObjectByKey(const Key &Key) noexcept { return const_cast<T *>(TryGetObjectByKey(Key)); }
 
   const T *TryGetObjectById(Id<T> Id) const noexcept {
     return Id < size() ? &Storage_[Id] : nullptr;
   }
+  T *TryGetObjectById(Id<T> Id) noexcept { return const_cast<T *>(TryGetObjectById(Id)); }
 
   Id<T> GetId(const Key &Key) const noexcept {
     const auto *Id = TryGetId(Key);

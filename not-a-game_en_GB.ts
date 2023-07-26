@@ -4,8 +4,33 @@
 <context>
     <name>CapitalViewWindow</name>
     <message>
-        <location filename="src/client/ui/capital_view_window.ui" line="16"/>
-        <source>MainWindow</source>
+        <location filename="src/client/ui/capital_view_window.ui" line="26"/>
+        <source>Capital View</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/capital_view_window.ui" line="81"/>
+        <source>Spellbook</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/capital_view_window.ui" line="88"/>
+        <source>Army</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/capital_view_window.ui" line="95"/>
+        <source>Build</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/capital_view_window.ui" line="122"/>
+        <source>Exit city</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/capital_view_window.ui" line="129"/>
+        <source>Close</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -59,6 +84,27 @@
     <message>
         <location filename="src/client/ui/global_map_window.ui" line="161"/>
         <source>Next hero</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SquadWidget</name>
+    <message>
+        <location filename="src/client/ui/squad_widget.ui" line="14"/>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>UnitWidget</name>
+    <message>
+        <location filename="src/client/ui/unit_widget.ui" line="20"/>
+        <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/unit_widget.ui" line="53"/>
+        <source>&lt;b&gt;8888/9999&lt;/b&gt;</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

@@ -17,6 +17,11 @@ struct Coord {
   Dim Y;
 };
 
+struct Dims2D {
+  Size Width;
+  Size Height;
+};
+
 template <typename T, std::size_t N> using SmallVector = boost::container::small_vector<T, N>;
 
 } // namespace NotAGame
