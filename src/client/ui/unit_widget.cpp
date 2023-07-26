@@ -1,16 +1,15 @@
 #include "unit_widget.h"
 #include "ui_unit_widget.h"
 
-UnitWidget::UnitWidget(const InterfaceSettings &Settings, NotAGame::Unit *Unit, QWidget *Parent)
+UnitWidget::UnitWidget(const NotAGame::InterfaceSettings &Settings, NotAGame::Unit *Unit,
+                       QWidget *Parent)
     : Unit_{Unit}, QWidget(Parent), UI_(new Ui::UnitWidget) {
   UI_->setupUi(this);
   uint32_t W = Unit_ ? Unit_->GetWidth() : 1;
   uint32_t H = Unit_ ? Unit_->GetHeight() : 1;
 
-  UI_->gfxUnit->resize(Settings.UnitGridSize.Width * W +
-                           (Settings.UnitGridSize.Width - 1) * Settings.GridSpacerHeight,
-                       Settings.UnitGridSize.Height * H +
-                           (Settings.UnitGridSize.Height - 1) * Settings.GridSpacerHeight);
+  UI_->gfxUnit->resize(Settings.UnitGridSize.Width * W + (W - 1) * Settings.GridSpacerHeight,
+                       Settings.UnitGridSize.Height * H + (H - 1) * Settings.GridSpacerHeight);
   Update();
 }
 

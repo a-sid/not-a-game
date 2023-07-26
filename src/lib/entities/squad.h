@@ -6,7 +6,6 @@
 #include "util/types.h"
 
 #include <cstdint>
-#include <ranges>
 #include <string>
 
 namespace NotAGame {
@@ -85,9 +84,9 @@ public:
     return Registry_.TryGetObjectById(Grid_.GetUnit(X, Y));
   }
 
-  auto GetUnits() const noexcept {
+  /*auto GetUnits() const noexcept {
     return Units_ | std::views::transform([this](auto Id) { return Registry_.GetObjectById(Id); });
-  }
+  }*/
 
 private:
   Grid Grid_;

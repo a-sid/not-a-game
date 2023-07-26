@@ -33,7 +33,7 @@
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <widget class="QDockWidget" name="dockWidget_3">
+  <widget class="QDockWidget" name="SidePanel">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
      <horstretch>0</horstretch>

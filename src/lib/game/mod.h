@@ -6,6 +6,9 @@
 #include "entities/resource.h"
 #include "entities/squad.h"
 #include "entities/unit.h"
+
+#include "game/settings.h"
+
 #include "util/registry.h"
 
 #include <filesystem>
@@ -31,6 +34,7 @@ public:
   const TownSettings &GetTownSettings() const noexcept { return TownSettings_; }
   const CapitalSettings &GetCapitalSettings() const noexcept { return CapitalSettings_; }
   const GridSettings &GetGridSettings() const noexcept { return GridSettings_; }
+  const InterfaceSettings &GetInterfaceSettings() const noexcept { return InterfaceSettings_; }
 
 private:
   explicit Mod(Named Name) noexcept;
@@ -50,6 +54,7 @@ private:
   TownSettings TownSettings_;
   CapitalSettings CapitalSettings_;
   GridSettings GridSettings_;
+  InterfaceSettings InterfaceSettings_;
 };
 
 } // namespace NotAGame

@@ -21,6 +21,12 @@ template <typename Value> Named LoadNamed(const Value &V) noexcept {
   return {std::move(Name), std::move(Title), std::move(Description)};
 }
 
+template <typename Settings, typename Value>
+void LoadDim2DSettings(Settings &S, const Value &V) noexcept {
+  S.Width = V["width"].GetUint();
+  S.Height = V["height"].GetUint();
+}
+
 template <typename Value> Terrain LoadTerrain(const Value &V) noexcept {
   auto &&Named = LoadNamed(V);
   auto BaseCost = V["cost"].GetUint();
@@ -29,8 +35,7 @@ template <typename Value> Terrain LoadTerrain(const Value &V) noexcept {
 
 template <typename Settings, typename Value> Settings LoadTownSettings(const Value &V) noexcept {
   Settings S;
-  S.Width = V["width"].GetUint();
-  S.Height = V["height"].GetUint();
+  LoadDim2DSettings(S, V);
   const auto &EntrancePos = V["entrance_pos"];
   S.EntrancePos.X = EntrancePos["x"].GetUint();
   S.EntrancePos.Y = EntrancePos["y"].GetUint();
@@ -39,8 +44,16 @@ template <typename Settings, typename Value> Settings LoadTownSettings(const Val
 
 template <typename Value> GridSettings LoadGridSettings(const Value &V) noexcept {
   GridSettings S;
-  S.Width = V["width"].GetUint();
-  S.Height = V["height"].GetUint();
+  LoadDim2DSettings(S, V);
+  return S;
+}
+
+template <typename Value> InterfaceSettings LoadInterfaceSettings(const Value &V) noexcept {
+  InterfaceSettings S;
+  S.GridSpacerHeight = V["grid_spacer_width"].GetUint();
+  const auto &UnitIconSettings = V["unit_icon"];
+  LoadDim2DSettings(S.UnitGridSize, UnitIconSettings["grid"]);
+  LoadDim2DSettings(S.UnitInfoSize, UnitIconSettings["info"]);
   return S;
 }
 
@@ -65,6 +78,7 @@ Mod Mod::Load(const std::filesystem::path &Path) noexcept {
   M.TownSettings_ = LoadTownSettings<TownSettings>(Doc["town_settings"]);
   M.CapitalSettings_ = LoadTownSettings<CapitalSettings>(Doc["capital_settings"]);
   M.GridSettings_ = LoadGridSettings(Doc["grid_settings"]);
+  M.InterfaceSettings_ = LoadInterfaceSettings(Doc["interface_settings"]);
 
   return M;
 }

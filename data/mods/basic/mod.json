@@ -78,8 +78,8 @@
     "width": 2,
     "height": 3
   },
-  "interface": {
-    "grid_spacer_width": 20,
+  "interface_settings": {
+    "grid_spacer_width": 10,
     "unit_icon": {
       "grid": {
         "width": 100,

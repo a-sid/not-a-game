@@ -3,23 +3,18 @@
 #include <QWidget>
 
 #include "entities/unit.h"
+#include "game/settings.h"
 
 namespace Ui {
 class UnitWidget;
 }
 
-struct InterfaceSettings {
-  uint16_t GridSpacerHeight;
-  NotAGame::Dims2D UnitGridSize;
-  NotAGame::Dims2D UnitIconSize;
-};
-
 class UnitWidget : public QWidget {
   Q_OBJECT
 
 public:
-  explicit UnitWidget(const InterfaceSettings &Settings, NotAGame::Unit *Unit,
-                      QWidget *Parent = nullptr);
+  UnitWidget(const NotAGame::InterfaceSettings &Settings, NotAGame::Unit *Unit,
+             QWidget *Parent = nullptr);
   void Update();
   ~UnitWidget();
 

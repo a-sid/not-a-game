@@ -218,7 +218,7 @@ void GlobalMapWindow::HandleObjectClick(QPoint MapCoord, Id<MapObjectPtr> Object
 }
 
 void GlobalMapWindow::OpenCapitalScreen() {
-  auto W = new CapitalViewWindow{this};
+  auto W = new CapitalViewWindow{Mod_.GetInterfaceSettings(), Mod_.GetGridSettings(), this};
   W->show();
 }
 
