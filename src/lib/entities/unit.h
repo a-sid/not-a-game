@@ -2,6 +2,7 @@
 
 #include "entities/common.h"
 #include "entities/effect.h"
+#include "entities/resource.h"
 #include "util/id.h"
 #include "util/registry.h"
 #include "util/types.h"
@@ -102,30 +103,39 @@ public:
 };
 
 struct UnitDescriptor : public Named {
-  UnitDescriptor(Named N) noexcept : Named{std::move(N)} {}
+  UnitDescriptor(Named N, const Utils::Registry<Resource> &ResourceRegistry) noexcept
+      : Named{std::move(N)}, HireCost{ResourceRegistry}, ResurrectCost{ResourceRegistry},
+        HealPerHPCost{ResourceRegistry} {}
 
   Id<Icon> IconId;
-  Size Level;
 
-  Size MaxHealth;
-  Size MaxExperience;
+  Size MaxHealth = 0;
+  Size MaxExperience = 0;
 
-  Size Damage;
-  Size Defence;
+  Size Damage = 0;
+  Size Armor = 0;
 
-  Size Speed;
+  Size Speed = 0;
 
-  Size ExpForKill;
+  Size ExpForKill = 0;
 
   Bitset Immunes;
   Bitset Wards;
 
-  uint8_t Width;
-  uint8_t Height;
+  uint8_t Width = 1;
+  uint8_t Height = 1;
 
   Id<UnitDescriptor> PreviousForm;
 
   Id<LeaderDescriptor> LeaderDescriptorId;
+
+  Size HealthGrowth = 0;
+  Size DamageGrowth = 0;
+  Size ExpForKillGrowth = 0;
+
+  Resources HireCost;
+  Resources ResurrectCost;
+  Resources HealPerHPCost;
 };
 
 class Inventory {
@@ -177,6 +187,8 @@ private:
   Coord Position_;
 
   std::vector<Id<Effect>> Effects_;
+
+  bool IsMovable_ = true;
 };
 
 } // namespace NotAGame

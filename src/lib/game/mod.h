@@ -31,6 +31,7 @@ public:
   static Mod Load(const std::string &Name) noexcept;
 
   const auto &GetTerrains() const noexcept { return Terrains_; }
+  const auto &GetResources() const noexcept { return Resources_; }
   const TownSettings &GetTownSettings() const noexcept { return TownSettings_; }
   const CapitalSettings &GetCapitalSettings() const noexcept { return CapitalSettings_; }
   const GridSettings &GetGridSettings() const noexcept { return GridSettings_; }

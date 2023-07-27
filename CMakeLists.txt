@@ -13,7 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(GoogleTest)
 
-add_compile_definitions(RAPIDJSON_HAS_STDSTRING)
+add_compile_definitions(RAPIDJSON_HAS_STDSTRING RAPIDJSON_HAS_CXX11_RANGE_FOR)
 
 # QtCreator supports the following variables for Android, which are identical to qmake Android variables.
 # Check http://doc.qt.io/qt-5/deployment-android.html for more information.

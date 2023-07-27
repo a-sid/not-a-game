@@ -1,20 +1,19 @@
 {
-  "name": "gnome_warrior",
+  "name": "guardian",
   "title": {
-    "ru": "Гном-воин",
-    "en": "Gnome-warrior"
+    "ru": "Страж",
+    "en": "Guardian"
   },
   "description":  {
-    "ru": "Горный гном-воин",
-    "en": "Mountain gnome-warrior"
+    "ru": "Страж",
+    "en": "Guardian"
   },
   "width": 1,
   "height": 1,
-  "icon": null,
-  "health": 200,
+  "health": 225,
   "armor": 0,
   "speed": 40,
-  "exp": 700,
+  "exp": 150,
   "num_attacks": 1,
   "attack": {
     "range": "nearest",
@@ -30,26 +29,25 @@
   "immunes": [],
   "wards": [],
   "exp_for_kill": 60,
-  "buildings_required": [
-    "brewery"
-  ],
   "growth": [
     {
-      "health": 20,
-      "damage": 6,
+      "health": 15,
+      "damage": 5,
       "exp_for_kill": 6
     }
   ],
   "costs": {
     "hire": {
-      "gold": 50
+      "gold": 500
     },
     "resurrect": {
-      "gold": 50
+      "gold": 200
     },
     "heal": {
       "gold": 1
     }
-  }
+  },
+  "leadership": 3,
+  "move_points": 20
 
 }

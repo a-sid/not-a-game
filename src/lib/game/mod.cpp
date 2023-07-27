@@ -111,10 +111,53 @@ private:
     LoadDirectory(M, Path, "unit.json", LoadUnitDescriptor);
   }
 
+  template <typename Value>
+  static Resources ParseResources(const Mod &M, const Value &Doc) noexcept {
+    const auto &Map = Doc.GetObject();
+    const auto &Registry = M.GetResources();
+    Resources R{Registry};
+    for (const auto &Member : Map) {
+      const auto Id = Registry.GetId(GetString(Member.name));
+      R.SetAmountById(Id, Member.value.GetInt());
+    }
+    return R;
+  }
+
   static void LoadUnitDescriptor(Mod &M, const std::filesystem::path &Path,
                                  const rapidjson::Document &Doc) noexcept {
     Named Named = LoadNamed(Doc);
-    UnitDescriptor U{std::move(Named)};
+    auto Name = Named.GetName();
+    UnitDescriptor U{std::move(Named), M.GetResources()};
+    U.Width = Doc["width"].GetUint();
+    U.Height = Doc["height"].GetUint();
+
+    U.Armor = Doc["armor"].GetUint();
+    U.ExpForKill = Doc["exp_for_kill"].GetUint();
+    // TODO U.Immunes
+    // TODO U.IconId
+    U.MaxExperience = Doc["exp"].GetUint();
+    U.MaxHealth = Doc["health"].GetUint();
+    U.Speed = Doc["speed"].GetUint();
+    // TODO U.Wards
+
+    if (Doc.HasMember("prev_form")) {
+      U.PreviousForm = M.UnitDescriptors_.GetId(GetString(Doc["prev_form"]));
+    }
+
+    const auto &Growth = Doc["growth"][0]; // TODO
+    U.DamageGrowth = Growth["damage"].GetUint();
+    U.HealthGrowth = Growth["health"].GetUint();
+    U.ExpForKillGrowth = Growth["exp_for_kill"].GetUint();
+
+    const auto &Costs = Doc["costs"];
+    U.HireCost = ParseResources(M, Costs["hire"]);
+    U.ResurrectCost = ParseResources(M, Costs["resurrect"]);
+    U.HealPerHPCost = ParseResources(M, Costs["heal"]);
+
+    if (Doc.HasMember("leadership")) {
+    }
+
+    M.UnitDescriptors_.AddObject(std::move(Name), std::move(U));
   }
 
   static void LoadResources(Mod &M, const std::filesystem::path &Path) noexcept {
