@@ -9,7 +9,10 @@ CapitalViewWindow::CapitalViewWindow(const NotAGame::InterfaceSettings &IfaceSet
     : QMainWindow(Parent), UI_(new Ui::CapitalViewWindow) {
   UI_->setupUi(this);
   GuardWidget_ = new SquadWidget{IfaceSettings, GridSettings, nullptr, UI_->dockWidgetContents_3};
+  GarrisonWidget_ =
+      new SquadWidget{IfaceSettings, GridSettings, nullptr, UI_->dockWidgetContents_3};
   UI_->SquadsLayout->addWidget(GuardWidget_);
+  UI_->SquadsLayout->addWidget(GarrisonWidget_);
 }
 
 CapitalViewWindow::~CapitalViewWindow() { delete UI_; }

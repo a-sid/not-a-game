@@ -1,5 +1,6 @@
 #pragma once
 
+#include "entities/common.h"
 #include "entities/effect.h"
 #include "util/id.h"
 #include "util/registry.h"
@@ -100,9 +101,10 @@ public:
   virtual void RecomputeEffects(const SmallVector<Effect, 16> &Effects) noexcept;
 };
 
-struct UnitDescriptor {
+struct UnitDescriptor : public Named {
+  UnitDescriptor(Named N) noexcept : Named{std::move(N)} {}
+
   Id<Icon> IconId;
-  std::string Description;
   Size Level;
 
   Size MaxHealth;
@@ -157,7 +159,7 @@ public:
   const SizeTrait &GetHealth() const noexcept { return Health_; }
 
 private:
-  Utils::Registry<UnitDescriptor> Registry_;
+  Utils::Registry<UnitDescriptor> &Registry_;
   Id<UnitDescriptor> Descriptor_;
   Id<LeaderData> LeaderData_;
 

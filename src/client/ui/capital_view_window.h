@@ -20,4 +20,5 @@ private:
   Ui::CapitalViewWindow *UI_;
 
   SquadWidget *GuardWidget_;
+  SquadWidget *GarrisonWidget_;
 };

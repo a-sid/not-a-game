@@ -13,8 +13,6 @@
 
 #include <filesystem>
 
-class Unit;
-
 namespace NotAGame {
 
 struct DamageSource {
@@ -24,6 +22,8 @@ struct DamageSource {
 struct Language {
   std::string Value;
 };
+
+class ModLoader;
 
 class Mod : public Named {
 public:
@@ -38,6 +38,9 @@ public:
 
 private:
   explicit Mod(Named Name) noexcept;
+
+  friend class NotAGame::ModLoader;
+
   Utils::Registry<Terrain> Terrains_;
   Utils::Registry<Resource> Resources_;
   Utils::Registry<UnitDescriptor> UnitDescriptors_;

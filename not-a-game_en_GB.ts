@@ -9,27 +9,32 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/capital_view_window.ui" line="81"/>
+        <location filename="src/client/ui/capital_view_window.ui" line="83"/>
         <source>Spellbook</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/capital_view_window.ui" line="88"/>
+        <location filename="src/client/ui/capital_view_window.ui" line="90"/>
         <source>Army</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/capital_view_window.ui" line="95"/>
+        <location filename="src/client/ui/capital_view_window.ui" line="97"/>
         <source>Build</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/capital_view_window.ui" line="122"/>
+        <location filename="src/client/ui/capital_view_window.ui" line="126"/>
+        <source>PushButton</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/capital_view_window.ui" line="137"/>
         <source>Exit city</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/capital_view_window.ui" line="129"/>
+        <location filename="src/client/ui/capital_view_window.ui" line="144"/>
         <source>Close</source>
         <translation type="unfinished"></translation>
     </message>

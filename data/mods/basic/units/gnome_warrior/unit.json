@@ -21,9 +21,9 @@
         "damage_source": "weapon",
         "effect": "damage",
         "value": 55,
-        "accuracy": 80,
+        "accuracy": 80
       }
-    ],
+    ]
   },
   "immunes": [],
   "wards": [],
@@ -36,6 +36,18 @@
       "health": 20,
       "damage": 6,
       "exp_for_kill": 6
+    }
+  ],
+  "costs": {
+    "hire": {
+      "gold": 50
     },
-  ]
+    "resurrect": {
+      "gold": 50
+    },
+    "heal": {
+      "gold": 1
+    }
+  }
+
 }

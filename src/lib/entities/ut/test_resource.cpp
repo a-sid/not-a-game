@@ -8,16 +8,8 @@ using namespace NotAGame::Utils;
 class TestResource : public ::testing::Test {
 protected:
   virtual void SetUp() {
-    Resource Gold{
-        .Name = "gold",
-        .Title = "Gold",
-        .Description = "gold",
-    };
-    Resource Mana{
-        .Name = "mana",
-        .Title = "Mana",
-        .Description = "mana",
-    };
+    Resource Gold{"gold", "Gold", "gold"};
+    Resource Mana{"mana", "Mana", "mana"};
     Registry_.AddObject("gold", std::move(Gold));
     Registry_.AddObject("mana", std::move(Mana));
   }

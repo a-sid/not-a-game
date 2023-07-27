@@ -19,6 +19,8 @@ public:
   SquadWidget(const NotAGame::InterfaceSettings &IfaceSettings,
               const NotAGame::GridSettings &GridSettings, NotAGame::Squad *Squad,
               QWidget *Parent = nullptr);
+
+  void Update() noexcept;
   ~SquadWidget();
 
 private:

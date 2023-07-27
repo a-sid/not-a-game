@@ -6,7 +6,10 @@
   },
   "units": [
     "gnome",
-    "gnome-warrior"
+    "gnome_warrior",
+  ],
+  "leaders": [
+    "guardian"
   ],
   "spells": [
     "ice_shield"

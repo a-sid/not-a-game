@@ -61,31 +61,87 @@ template <typename Value> InterfaceSettings LoadInterfaceSettings(const Value &V
 
 Mod::Mod(Named Name) noexcept : Named{std::move(Name)} {}
 
-Mod Mod::Load(const std::filesystem::path &Path) noexcept {
-  std::ifstream RootFile{Path / "mod.json"};
-  rapidjson::IStreamWrapper JsonStream{RootFile};
-  rapidjson::Document Doc;
-  Doc.ParseStream(JsonStream);
-  Named ModName = LoadNamed(Doc);
-  Mod M{std::move(ModName)};
+class ModLoader {
+public:
+  static Mod Load(const std::filesystem::path &Path) noexcept {
+    std::ifstream RootFile{Path / "mod.json"};
+    rapidjson::IStreamWrapper JsonStream{RootFile};
+    rapidjson::Document Doc;
+    Doc.ParseStream(JsonStream);
+    Named ModName = LoadNamed(Doc);
+    Mod M{std::move(ModName)};
 
-  for (const auto &V : Doc["terrains"].GetArray()) {
-    auto T = LoadTerrain(V);
-    auto Name = T.GetName();
-    M.Terrains_.AddObject(std::move(Name), std::move(T));
+    for (const auto &V : Doc["terrains"].GetArray()) {
+      auto T = LoadTerrain(V);
+      auto Name = T.GetName();
+      M.Terrains_.AddObject(std::move(Name), std::move(T));
+    }
+
+    M.TownSettings_ = LoadTownSettings<TownSettings>(Doc["town_settings"]);
+    M.CapitalSettings_ = LoadTownSettings<CapitalSettings>(Doc["capital_settings"]);
+    M.GridSettings_ = LoadGridSettings(Doc["grid_settings"]);
+    M.InterfaceSettings_ = LoadInterfaceSettings(Doc["interface_settings"]);
+
+    LoadResources(M, Path / "resources");
+    LoadUnits(M, Path / "units");
+
+    return M;
   }
 
-  M.TownSettings_ = LoadTownSettings<TownSettings>(Doc["town_settings"]);
-  M.CapitalSettings_ = LoadTownSettings<CapitalSettings>(Doc["capital_settings"]);
-  M.GridSettings_ = LoadGridSettings(Doc["grid_settings"]);
-  M.InterfaceSettings_ = LoadInterfaceSettings(Doc["interface_settings"]);
+  static Mod Load(const std::string &Name) noexcept {
+    const auto Path = Utils::GetModsDir() / Name;
+    return Load(Path);
+  }
 
-  return M;
-}
+private:
+  template <typename ParserFn>
+  static void LoadDirectory(Mod &M, const std::filesystem::path &Path, const std::string &Filename,
+                            ParserFn &&Parser) noexcept {
+    for (std::filesystem::directory_iterator I{Path}, E; I != E; ++I) {
+      assert(I->is_directory());
+      std::ifstream DescrFile{I->path() / Filename};
+      rapidjson::IStreamWrapper JsonStream{DescrFile};
+      rapidjson::Document Doc;
+      Doc.ParseStream(JsonStream);
+      Parser(M, I->path(), Doc);
+    }
+  }
 
-Mod Mod::Load(const std::string &Name) noexcept {
-  const auto Path = Utils::GetModsDir() / Name;
-  return Load(Path);
-}
+  static void LoadUnits(Mod &M, const std::filesystem::path &Path) noexcept {
+    LoadDirectory(M, Path, "unit.json", LoadUnitDescriptor);
+  }
+
+  static void LoadUnitDescriptor(Mod &M, const std::filesystem::path &Path,
+                                 const rapidjson::Document &Doc) noexcept {
+    Named Named = LoadNamed(Doc);
+    UnitDescriptor U{std::move(Named)};
+  }
+
+  static void LoadResources(Mod &M, const std::filesystem::path &Path) noexcept {
+    // The order is important and is specified in resources.json.
+    std::ifstream DescrFile{Path / "resources.json"};
+    rapidjson::IStreamWrapper JsonStream{DescrFile};
+    rapidjson::Document Doc;
+    Doc.ParseStream(JsonStream);
+    for (const auto &V : Doc.GetArray()) {
+      LoadResource(M, Path / GetString(V));
+    }
+  }
+
+  static void LoadResource(Mod &M, const std::filesystem::path &Path) noexcept {
+    std::ifstream DescrFile{Path / "resource.json"};
+    rapidjson::IStreamWrapper JsonStream{DescrFile};
+    rapidjson::Document Doc;
+    Doc.ParseStream(JsonStream);
+
+    Named Named = LoadNamed(Doc);
+    Resource R{std::move(Named)};
+    std::string Name{R.GetName()};
+    M.Resources_.AddObject(std::move(Name), std::move(R));
+  }
+};
+
+Mod Mod::Load(const std::filesystem::path &Path) noexcept { return ModLoader::Load(Path); }
+Mod Mod::Load(const std::string &Name) noexcept { return ModLoader::Load(Name); }
 
 } // namespace NotAGame

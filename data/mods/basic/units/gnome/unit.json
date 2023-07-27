@@ -8,7 +8,7 @@
     "ru": "Горный гном",
     "en": "Mountain gnome"
   },
-  "width":  1,
+  "width": 1,
   "height": 1,
   "hp": 150,
   "armor": 0,
@@ -22,9 +22,9 @@
         "damage_source": "weapon",
         "effect": "damage",
         "value": 25,
-        "accuracy": 80,
+        "accuracy": 80
       }
-    ],
+    ]
   },
   "immunes": [],
   "wards": [],
@@ -39,6 +39,17 @@
       "health": 15,
       "damage": 2,
       "exp_for_kill": 2
+    }
+  ],
+  "costs": {
+    "hire": {
+      "gold": 50
     },
-  ]
+    "resurrect": {
+      "gold": 50
+    },
+    "heal": {
+      "gold": 1
+    }
+  }
 }

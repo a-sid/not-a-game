@@ -1,5 +1,6 @@
 #pragma once
 
+#include "entities/common.h"
 #include "util/registry.h"
 #include "util/types.h"
 
@@ -9,10 +10,9 @@
 
 namespace NotAGame {
 
-struct Resource {
-  std::string Name;
-  std::string Title;
-  std::string Description;
+struct Resource : public Named {
+    using Named::Named;
+    Resource(Named&& Name) : Named{std::move(Name)} {}
 };
 
 class Resources {
