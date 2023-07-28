@@ -4,37 +4,37 @@
 <context>
     <name>CapitalViewWindow</name>
     <message>
-        <location filename="src/client/ui/capital_view_window.ui" line="26"/>
+        <location filename="src/client/ui/capital_view_window.ui" line="32"/>
         <source>Capital View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/capital_view_window.ui" line="83"/>
+        <location filename="src/client/ui/capital_view_window.ui" line="89"/>
         <source>Spellbook</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/capital_view_window.ui" line="90"/>
+        <location filename="src/client/ui/capital_view_window.ui" line="96"/>
         <source>Army</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/capital_view_window.ui" line="97"/>
+        <location filename="src/client/ui/capital_view_window.ui" line="103"/>
         <source>Build</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/capital_view_window.ui" line="126"/>
+        <location filename="src/client/ui/capital_view_window.ui" line="132"/>
         <source>PushButton</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/capital_view_window.ui" line="137"/>
+        <location filename="src/client/ui/capital_view_window.ui" line="143"/>
         <source>Exit city</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/capital_view_window.ui" line="144"/>
+        <location filename="src/client/ui/capital_view_window.ui" line="150"/>
         <source>Close</source>
         <translation type="unfinished"></translation>
     </message>
@@ -42,52 +42,52 @@
 <context>
     <name>GlobalMapWindow</name>
     <message>
-        <location filename="src/client/ui/global_map_window.ui" line="26"/>
+        <location filename="src/client/ui/global_map_window.ui" line="32"/>
         <source>NotAGame</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/global_map_window.ui" line="91"/>
+        <location filename="src/client/ui/global_map_window.ui" line="97"/>
         <source>Magic</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/global_map_window.ui" line="98"/>
+        <location filename="src/client/ui/global_map_window.ui" line="104"/>
         <source>Diplomacy</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/global_map_window.ui" line="105"/>
+        <location filename="src/client/ui/global_map_window.ui" line="111"/>
         <source>Capital</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/global_map_window.ui" line="126"/>
+        <location filename="src/client/ui/global_map_window.ui" line="132"/>
         <source>Continue moving</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/global_map_window.ui" line="133"/>
+        <location filename="src/client/ui/global_map_window.ui" line="139"/>
         <source>Guard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/global_map_window.ui" line="140"/>
+        <location filename="src/client/ui/global_map_window.ui" line="146"/>
         <source>Install rod</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/global_map_window.ui" line="147"/>
+        <location filename="src/client/ui/global_map_window.ui" line="153"/>
         <source>End turn</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/global_map_window.ui" line="154"/>
+        <location filename="src/client/ui/global_map_window.ui" line="160"/>
         <source>Use scroll</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/global_map_window.ui" line="161"/>
+        <location filename="src/client/ui/global_map_window.ui" line="167"/>
         <source>Next hero</source>
         <translation type="unfinished"></translation>
     </message>

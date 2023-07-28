@@ -84,6 +84,7 @@ public:
 
     LoadResources(M, Path / "resources");
     LoadUnits(M, Path / "units");
+    LoadSpells(M, Path / "spells");
 
     return M;
   }
@@ -154,7 +155,14 @@ private:
     U.ResurrectCost = ParseResources(M, Costs["resurrect"]);
     U.HealPerHPCost = ParseResources(M, Costs["heal"]);
 
-    if (Doc.HasMember("leadership")) {
+    if (Doc.HasMember("leader")) {
+      const auto &LeaderData = Doc["leader"];
+      LeaderDescriptor LD;
+      LD.MaxLeadership = LeaderData["leadership"].GetUint();
+      LD.MaxSteps = LeaderData["move_points"].GetUint();
+      LD.ViewRange = LeaderData["view_range"].GetUint();
+      // TODO LD.Perks
+      U.LeaderDescriptorId = M.LeaderDescriptors_.AddObject(std::string{Name}, std::move(LD));
     }
 
     M.UnitDescriptors_.AddObject(std::move(Name), std::move(U));
@@ -181,6 +189,26 @@ private:
     Resource R{std::move(Named)};
     std::string Name{R.GetName()};
     M.Resources_.AddObject(std::move(Name), std::move(R));
+  }
+
+  static void LoadSpells(Mod &M, const std::filesystem::path &Path) noexcept {
+    LoadDirectory(M, Path, "spell.json", LoadSpell);
+  }
+
+  static void LoadSpell(Mod &M, const std::filesystem::path &Path,
+                        const rapidjson::Document &Doc) noexcept {
+    Named Named = LoadNamed(Doc);
+    Effect E; // TODO: Parse and load
+    std::string Name{Named.GetName()};
+    Spell S{std::move(Named), M.GetResources()};
+    S.Level = Doc["level"].GetUint();
+    S.SpellEffect = E;
+    const auto &Costs = Doc["costs"];
+    S.LearningCost = ParseResources(M, Costs["learning"]);
+    S.UseCost = ParseResources(M, Costs["use"]);
+    S.TradeCost = ParseResources(M, Costs["trade"]);
+
+    M.Resources_.AddObject(std::move(Name), std::move(S));
   }
 };
 

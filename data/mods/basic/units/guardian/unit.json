@@ -47,7 +47,9 @@
       "gold": 1
     }
   },
-  "leadership": 3,
-  "move_points": 20
-
+  "leader": {
+    "leadership": 3,
+    "move_points": 20,
+    "view_range": 5
+  }
 }

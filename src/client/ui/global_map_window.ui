@@ -22,6 +22,12 @@
     <height>768</height>
    </size>
   </property>
+  <property name="font">
+   <font>
+    <family>EB Garamond</family>
+    <pointsize>14</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>NotAGame</string>
   </property>
@@ -48,7 +54,7 @@
      <x>0</x>
      <y>0</y>
      <width>1440</width>
-     <height>28</height>
+     <height>38</height>
     </rect>
    </property>
   </widget>

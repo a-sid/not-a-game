@@ -44,9 +44,10 @@ template <typename T> Dim ToDim(T Val) noexcept { return static_cast<Dim>(Val); 
 class Perk;
 class Squad;
 
-class LeaderDescriptor {
+struct LeaderDescriptor {
   Size MaxLeadership;
   Size MaxSteps;
+  Size ViewRange;
 
   SmallVector<Id<Perk>, 16> Perks;
 };
@@ -147,8 +148,8 @@ class LeaderData {
   std::string Name_;
 
   SizeTrait Leadership_;
-
   SizeTrait Steps_;
+  SizeTrait ViewRange_;
 
   Inventory Items_;
 };
@@ -160,7 +161,7 @@ public:
 
   bool IsAlive() const noexcept { return Health_.GetValue() != 0; }
 
-  bool IsLeader() const noexcept { return Leadership_ != 0; }
+  bool IsLeader() const noexcept { return LeaderData_.IsValid(); }
 
   uint8_t GetWidth() const noexcept { return Registry_.GetObjectById(Descriptor_).Width; }
   uint8_t GetHeight() const noexcept { return Registry_.GetObjectById(Descriptor_).Height; }
@@ -180,8 +181,6 @@ private:
   SizeTrait Speed_;
 
   SizeTrait Damage_;
-
-  Size Leadership_;
 
   Id<Squad> Squad_;
   Coord Position_;

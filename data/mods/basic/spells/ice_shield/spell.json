@@ -16,6 +16,17 @@
       }
     }
   ],
+  "costs": {
+    "learning": {
+      "mana_runes": 200
+    },
+    "use": {
+      "mana_runes": 100
+    },
+    "trade": {
+      "gold": 200
+    }
+  },
   "icon": null,
-  "animation": null,
+  "animation": null
 }
