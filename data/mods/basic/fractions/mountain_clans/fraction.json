@@ -4,9 +4,13 @@
     "ru": "Горные кланы",
     "en": "Mountain clans"
   },
+  "description": {
+    "ru": "Народ гномов, созданный Вотаном, населяет снежные горы Невендаара и искушён в горном ремесле.",
+    "en": "Race of gnomes, created by Wotan, lives in the snowy mountains of Nevendaar and is experienced in the mining craft."
+  },
   "units": [
     "gnome",
-    "gnome_warrior",
+    "gnome_warrior"
   ],
   "leaders": [
     "guardian"
@@ -20,7 +24,7 @@
       "magic_guild",
       "temple"
     ],
-    "warriors": [
+    "melee": [
       "brewery"
     ]
   }

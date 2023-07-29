@@ -31,18 +31,27 @@ public:
     return *Object;
   }
 
-  T &GetObjectById(Id<T> Id) noexcept { return const_cast<T &>(GetObjectById(Id)); }
+  T &GetObjectById(Id<T> Id) noexcept {
+    auto *Object = TryGetObjectById(Id);
+    if (!Object) {
+      LogFatal() << "No object found with Id=" << Id;
+    }
+    return *Object;
+  }
 
   const T *TryGetObjectByKey(const Key &Key) const noexcept {
     auto Found = MapFindPtr(Objects_, Key);
     return Found ? &Storage_[*Found] : nullptr;
   }
-  T *TryGetObjectByKey(const Key &Key) noexcept { return const_cast<T *>(TryGetObjectByKey(Key)); }
+  T *TryGetObjectByKey(const Key &Key) noexcept {
+    auto Found = MapFindPtr(Objects_, Key);
+    return Found ? &Storage_[*Found] : nullptr;
+  }
 
   const T *TryGetObjectById(Id<T> Id) const noexcept {
     return Id < size() ? &Storage_[Id] : nullptr;
   }
-  T *TryGetObjectById(Id<T> Id) noexcept { return const_cast<T *>(TryGetObjectById(Id)); }
+  T *TryGetObjectById(Id<T> Id) noexcept { return Id < size() ? &Storage_[Id] : nullptr; }
 
   Id<T> GetId(const Key &Key) const noexcept {
     const auto *Id = TryGetId(Key);

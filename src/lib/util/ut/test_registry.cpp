@@ -6,7 +6,7 @@ using namespace NotAGame;
 using namespace NotAGame::Utils;
 
 TEST(Registry, Empty) {
-  Registry<int> R;
+  Registry<int, 1> R;
   EXPECT_EQ(R.size(), 0);
   EXPECT_TRUE(R.empty());
   EXPECT_DEATH(R.GetObjectByKey("a"), "");
@@ -16,7 +16,7 @@ TEST(Registry, Empty) {
 }
 
 TEST(Registry, AddObject) {
-  Registry<std::string> R;
+  Registry<std::string, 1> R;
   EXPECT_EQ(R.AddObject("a", "aaa"), 0);
   EXPECT_EQ(R.size(), 1);
   EXPECT_FALSE(R.empty());

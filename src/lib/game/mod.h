@@ -23,6 +23,11 @@ struct Language {
   std::string Value;
 };
 
+struct BuildingPage : public Named {
+  using Named::Named;
+  BuildingPage(Named &&Name) noexcept : Named{std::move(Name)} {}
+};
+
 class ModLoader;
 
 class Mod : public Named {
@@ -30,8 +35,12 @@ public:
   static Mod Load(const std::filesystem::path &Path) noexcept;
   static Mod Load(const std::string &Name) noexcept;
 
+  // TODO: Should we actually turn it into struct?
   const auto &GetTerrains() const noexcept { return Terrains_; }
   const auto &GetResources() const noexcept { return Resources_; }
+  const auto &GetSpells() const noexcept { return Spells_; }
+  const auto &GetFractions() const noexcept { return Fractions_; }
+
   const TownSettings &GetTownSettings() const noexcept { return TownSettings_; }
   const CapitalSettings &GetCapitalSettings() const noexcept { return CapitalSettings_; }
   const GridSettings &GetGridSettings() const noexcept { return GridSettings_; }
@@ -42,18 +51,18 @@ private:
 
   friend class NotAGame::ModLoader;
 
-  Utils::Registry<Terrain> Terrains_;
-  Utils::Registry<Resource> Resources_;
+  Utils::Registry<Terrain, 8> Terrains_;
+  ResourceRegistry Resources_;
   Utils::Registry<UnitDescriptor> UnitDescriptors_;
   Utils::Registry<LeaderDescriptor> LeaderDescriptors_;
-  Utils::Registry<DamageSource> DamageSources_;
+  Utils::Registry<DamageSource, 16> DamageSources_;
   Utils::Registry<std::unique_ptr<UnitTrait>> UnitTraits_;
   //  Utils::Registry<ItemKind> ItemKinds_;
-  //  Utils::Registry<Spell> Spells_;
+  Utils::Registry<Spell> Spells_;
   // Utils::Registry<MapObjectPreset> MapObjectPresets_;
-  Utils::Registry<Building> Buildings_;
-  Utils::Registry<Fraction> Fractions_;
-  Utils::Registry<Lord> Lords_;
+  Utils::Registry<Fraction, 8> Fractions_;
+  Utils::Registry<Lord, 8> Lords_;
+  Utils::Registry<BuildingPage, 8> BuildingPages_;
 
   TownSettings TownSettings_;
   CapitalSettings CapitalSettings_;

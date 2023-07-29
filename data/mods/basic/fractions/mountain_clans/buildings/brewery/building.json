@@ -4,6 +4,16 @@
     "ru": "Пивоварня",
     "en": "Brewery"
   },
-  "icon": null,
-  "capital_pic": null,
+  "description": {
+    "ru": "Под звон огромных пивных кружек и одобрительные возгласы общины гномы-новобранцы, получившие достаточно опыта в пламени первых битв, получают звание Воинов Горных Кланов",
+    "en": "Within the clink of giant beer mugs and the cheers of the community, gnome recruits that got enough experience in the flames of their first battles, receive the title of Warriors of the Mountain Clans"
+  },
+  "functional_description": {
+    "ru": "Позволяет гномам превратиться в воинов, когда они наберут достаточно опыта",
+    "en": "Turns gnomes into gnome warriors when they get enough experience"
+  },
+  "requirements": [],
+  "cost": {
+    "gold": 200
+  }
 }

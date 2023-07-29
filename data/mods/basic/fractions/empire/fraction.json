@@ -1,0 +1,26 @@
+{
+  "name": "empire",
+  "title": {
+    "ru": "Империя",
+    "en": "Empire"
+  },
+  "description": {
+    "ru": "Раса людей, созданная Бетрезеном Изначальным, населяет равнины Невендаара.",
+    "en": "Race of people, created by Bethresen the Primordial, lives in the plains of Nevendaar"
+  },
+  "units": [
+  ],
+  "leaders": [
+  ],
+  "spells": [
+  ],
+  "buildings": {
+    "basic": [
+      "thief_guild",
+      "magic_guild",
+      "temple"
+    ],
+    "warriors": [
+    ]
+  }
+}

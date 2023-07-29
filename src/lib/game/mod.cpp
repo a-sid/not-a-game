@@ -82,9 +82,11 @@ public:
     M.GridSettings_ = LoadGridSettings(Doc["grid_settings"]);
     M.InterfaceSettings_ = LoadInterfaceSettings(Doc["interface_settings"]);
 
+    LoadBuildingPages(M, Doc["building_pages"]);
     LoadResources(M, Path / "resources");
     LoadUnits(M, Path / "units");
     LoadSpells(M, Path / "spells");
+    LoadFractions(M, Path / "fractions");
 
     return M;
   }
@@ -122,6 +124,15 @@ private:
       R.SetAmountById(Id, Member.value.GetInt());
     }
     return R;
+  }
+
+  template <typename Value> static void LoadBuildingPages(Mod &M, const Value &V) noexcept {
+    for (const auto &Page : V.GetArray()) {
+      auto Named = LoadNamed(Page);
+      BuildingPage P{std::move(Named)};
+      std::string Name = P.GetName();
+      M.BuildingPages_.AddObject(std::move(Name), std::move(P));
+    }
   }
 
   static void LoadUnitDescriptor(Mod &M, const std::filesystem::path &Path,
@@ -170,12 +181,18 @@ private:
 
   static void LoadResources(Mod &M, const std::filesystem::path &Path) noexcept {
     // The order is important and is specified in resources.json.
-    std::ifstream DescrFile{Path / "resources.json"};
+    LoadOrdered(M, Path, "resources.json", LoadResource);
+  }
+
+  template <typename ParserFn>
+  static void LoadOrdered(Mod &M, const std::filesystem::path &Path, const std::string &ListName,
+                          ParserFn &&Parser) noexcept {
+    std::ifstream DescrFile{Path / ListName};
     rapidjson::IStreamWrapper JsonStream{DescrFile};
     rapidjson::Document Doc;
     Doc.ParseStream(JsonStream);
     for (const auto &V : Doc.GetArray()) {
-      LoadResource(M, Path / GetString(V));
+      Parser(M, Path / GetString(V));
     }
   }
 
@@ -198,7 +215,7 @@ private:
   static void LoadSpell(Mod &M, const std::filesystem::path &Path,
                         const rapidjson::Document &Doc) noexcept {
     Named Named = LoadNamed(Doc);
-    Effect E; // TODO: Parse and load
+    Effect E; // TODO: Parse and load when implemented
     std::string Name{Named.GetName()};
     Spell S{std::move(Named), M.GetResources()};
     S.Level = Doc["level"].GetUint();
@@ -208,7 +225,51 @@ private:
     S.UseCost = ParseResources(M, Costs["use"]);
     S.TradeCost = ParseResources(M, Costs["trade"]);
 
-    M.Resources_.AddObject(std::move(Name), std::move(S));
+    M.Spells_.AddObject(std::move(Name), std::move(S));
+  }
+
+  template <typename Registry, typename Ids>
+  static void FillIds(const rapidjson::Document &Doc, const Registry &Reg, const std::string &Field,
+                      Ids &Id) noexcept {
+    const auto &Values = Doc[Field].GetArray();
+    Id.reserve(Values.Size());
+    for (const auto &Value : Values) {
+      Id.push_back(Reg.GetId(GetString(Value)));
+    }
+  }
+
+  static void LoadFractions(Mod &M, const std::filesystem::path &Path) noexcept {
+    LoadDirectory(M, Path, "fraction.json", LoadFraction);
+  }
+
+  static void LoadFraction(Mod &M, const std::filesystem::path &Path,
+                           const rapidjson::Document &Doc) noexcept {
+    Named Named = LoadNamed(Doc);
+    Effect E; // TODO: Parse and load when implemented
+    std::string Name{Named.GetName()};
+    Fraction F{std::move(Named)};
+
+    FillIds(Doc, M.GetSpells(), "spells", F.Spells);
+    FillIds(Doc, M.UnitDescriptors_, "units", F.UnitDescriptors);
+    FillIds(Doc, M.UnitDescriptors_, "leaders", F.Leaders);
+
+    // Buildings are loaded sequentially to resolve requirement dependencies between them.
+    LoadOrdered(
+        M, Path / "buildings", "buildings.json", [&F](Mod &M, const std::filesystem::path &Path) {
+          std::ifstream DescrFile{Path / "building.json"};
+          rapidjson::IStreamWrapper JsonStream{DescrFile};
+          rapidjson::Document Doc;
+          Doc.ParseStream(JsonStream);
+
+          auto Named = LoadNamed(Doc);
+          std::string Name{Named.GetName()};
+          Building B{std::move(Named), M.GetResources()};
+          FillIds(Doc, F.Buildings, "requirements", B.Requirements);
+          B.FunctionalDescription = GetString(Doc["functional_description"][Utils::DEFAULT_LANG]);
+          B.Cost = ParseResources(M, Doc["cost"]);
+          F.Buildings.AddObject(std::move(Name), std::move(B));
+        });
+    M.Fractions_.AddObject(std::move(Name), std::move(F));
   }
 };
 

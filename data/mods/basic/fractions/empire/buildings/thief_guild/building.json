@@ -1,0 +1,19 @@
+{
+  "name": "thief_guild",
+  "title": {
+    "ru": "Гильдия воров",
+    "en": "Thief guild"
+  },
+  "description": {
+    "ru": "Обитель интриг и заговоров, лучшие выходцы которой могут получить шанс послужить высшим целям Империи",
+    "en": "A tenament of plots and intrigues, the best of which can get a chance to serve the highest purposes of the Empire"
+  },
+  "functional_description": {
+    "ru": "Позволяет нанимать воров",
+    "en": "Allows to hire Thieves"
+  },
+  "requirements": [],
+  "cost": {
+    "gold": 150
+  }
+}

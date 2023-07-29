@@ -1,0 +1,19 @@
+{
+  "name": "temple",
+  "title": {
+    "ru": "Храм",
+    "en": "Temple"
+  },
+  "description": {
+    "ru": "В храме Всеотца послушники черпают жизненную силу, позволяющую исцелять раны и воскрешать воинов Империи",
+    "en": "In the temple of the Allfather novice monks draw the life power that allows to heal and resurrect the warriors of the Empire"
+  },
+  "functional_description": {
+    "ru": "Позволяет исцелять и воскрешать воинов в городах и столице",
+    "en": "Allows to heal and resurrect warriors in towns and in the capital"
+  },
+  "requirements": [],
+  "cost": {
+    "gold": 300
+  }
+}

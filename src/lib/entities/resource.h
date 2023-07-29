@@ -10,28 +10,32 @@
 
 namespace NotAGame {
 
+constexpr Size kExpectedResourceCount = 8;
+
 struct Resource : public Named {
     using Named::Named;
     Resource(Named&& Name) : Named{std::move(Name)} {}
 };
 
+using ResourceRegistry = Utils::Registry<Resource, kExpectedResourceCount>;
+
 class Resources {
 public:
   using Amount = int;
-  Resources(const Utils::Registry<Resource> &Registry) noexcept : Registry_{Registry} {
+  Resources(const ResourceRegistry &Registry) noexcept : Registry_{Registry} {
     Values_.resize(Registry.size(), 0);
   }
 
-  Resources(const Utils::Registry<Resource> &Registry,
+  Resources(const ResourceRegistry &Registry,
             std::initializer_list<Amount> Values) noexcept
       : Resources{Registry, Values.begin(), Values.end()} {}
 
   template <typename Iterable>
-  Resources(const Utils::Registry<Resource> &Registry, const Iterable &Values) noexcept
+  Resources(const ResourceRegistry &Registry, const Iterable &Values) noexcept
       : Resources{Registry, Values.begin(), Values.end()} {}
 
   template <typename It>
-  Resources(const Utils::Registry<Resource> &Registry, It Begin, It End) noexcept
+  Resources(const ResourceRegistry &Registry, It Begin, It End) noexcept
       : Registry_{Registry} {
     Values_.resize(Registry.size());
     Values_.assign(Begin, End);
@@ -144,7 +148,7 @@ public:
   }
 
 private:
-  Resources(const Utils::Registry<Resource> &Registry, int) : Registry_{Registry} {
+  Resources(const ResourceRegistry &Registry, int) : Registry_{Registry} {
     Values_.resize(Registry.size());
   }
 
@@ -159,7 +163,7 @@ private:
   }
 
   boost::container::small_vector<Amount, 8> Values_;
-  const Utils::Registry<Resource> &Registry_;
+  const ResourceRegistry &Registry_;
 };
 
 } // namespace NotAGame

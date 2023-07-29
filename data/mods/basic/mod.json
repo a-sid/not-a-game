@@ -58,6 +58,63 @@
       "cost": 6
     }
   ],
+  "building_pages": [
+    {
+      "name": "basic",
+      "title": {
+        "ru": "Основные здания",
+        "en": "Basic buildings"
+      },
+      "description": {
+        "ru": "Основные здания",
+        "en": "Basic buildings"
+      }
+    },
+    {
+      "name": "melee",
+      "title": {
+        "ru": "Ближний бой",
+        "en": "Melee"
+      },
+      "description": {
+        "ru": "Здания для бойцов ближнего боя",
+        "en": "Buildings for melee warriors"
+      }
+    },
+    {
+      "name": "mage",
+      "title": {
+        "ru": "Маги",
+        "en": "Mage"
+      },
+      "description": {
+        "ru": "Здания для бойцов-магов",
+        "en": "Buildings for mage warriors"
+      }
+    },
+    {
+      "name": "ranged",
+      "title": {
+        "ru": "Дальний бой",
+        "en": "Ranged"
+      },
+      "description": {
+        "ru": "Здания для бойцов дальнего боя",
+        "en": "Buildings for ranged warriors"
+      }
+    },
+    {
+      "name": "support",
+      "title": {
+        "ru": "Поддержка",
+        "en": "Support"
+      },
+      "description": {
+        "ru": "Здания для бойцов поддержки",
+        "en": "Buildings for support warriors"
+      }
+    }
+  ],
   "capital_settings": {
     "width": 5,
     "height": 5,

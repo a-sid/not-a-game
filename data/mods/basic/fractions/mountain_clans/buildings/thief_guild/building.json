@@ -4,6 +4,16 @@
     "ru": "Гильдия воров",
     "en": "Thief guild"
   },
-  "icon": null,
-  "capital_pic": null,
+  "description": {
+    "ru": "Обитель нечистых заговоров, где отверженные гномы могут получить свой последний шанс на достойную смерть во имя Вотана",
+    "en": "A tenament of dirty plots where gnome outcasts can get their last chance for a worthy death in the name of Wotan"
+  },
+  "functional_description": {
+    "ru": "Позволяет нанимать воров",
+    "en": "Allows to hire Thieves"
+  },
+  "requirements": [],
+  "cost": {
+    "gold": 150
+  }
 }

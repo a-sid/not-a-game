@@ -14,7 +14,7 @@ protected:
     Registry_.AddObject("mana", std::move(Mana));
   }
 
-  Registry<Resource> Registry_;
+  ResourceRegistry Registry_;
 };
 
 TEST_F(TestResource, Default) {

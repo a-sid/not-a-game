@@ -104,7 +104,7 @@ public:
 };
 
 struct UnitDescriptor : public Named {
-  UnitDescriptor(Named N, const Utils::Registry<Resource> &ResourceRegistry) noexcept
+  UnitDescriptor(Named N, const ResourceRegistry &ResourceRegistry) noexcept
       : Named{std::move(N)}, HireCost{ResourceRegistry}, ResurrectCost{ResourceRegistry},
         HealPerHPCost{ResourceRegistry} {}
 

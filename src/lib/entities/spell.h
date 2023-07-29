@@ -11,7 +11,7 @@
 namespace NotAGame {
 
 struct Spell : public Named {
-  Spell(Named Name, const Utils::Registry<Resource> &ResourceRegistry) noexcept
+  Spell(Named Name, const ResourceRegistry &ResourceRegistry) noexcept
       : Named{std::move(Name)},
         LearningCost{ResourceRegistry}, UseCost{ResourceRegistry}, TradeCost{ResourceRegistry} {}
 

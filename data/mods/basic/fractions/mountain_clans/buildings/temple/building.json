@@ -4,6 +4,16 @@
     "ru": "Храм",
     "en": "Temple"
   },
-  "icon": null,
-  "capital_pic": null,
+  "description": {
+    "ru": "В святом месте поклонения сам Вотан дарует своему народу жизненную силу, позволяющую исцелять раны и воскрешать воинов, падших в битве во имя его",
+    "en": "In this holy place of worshipping Wotan himself gives to his people the life force that can heal wounds and resurrect the warriors fallen with his name on lips"
+  },
+  "functional_description": {
+    "ru": "Позволяет исцелять и воскрешать воинов в городах и столице",
+    "en": "Allows to heal and resurrect warriors in towns and in the capital"
+  },
+  "requirements": [],
+  "cost": {
+    "gold": 300
+  }
 }

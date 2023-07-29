@@ -4,6 +4,16 @@
     "ru": "Гильдия магии",
     "en": "Magic guild"
   },
-  "icon": null,
-  "capital_pic": null,
+  "description": {
+    "ru": "Хранилище древних рунных томов, открывающих избранным гномьим Старейшинам могучие заклинания Горных Кланов",
+    "en": "A storage of the ancient rune volumes that open mighty Mounting Clans spells to the chosen gnome Elders"
+  },
+  "functional_description": {
+    "ru": "Позволяет изучать и использовать заклинания Горных Кланов",
+    "en": "Allows to study and use spells of Mountain Clans"
+  },
+  "requirements": [],
+  "cost": {
+    "gold": 150
+  }
 }

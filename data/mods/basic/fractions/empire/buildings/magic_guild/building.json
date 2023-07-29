@@ -1,0 +1,19 @@
+{
+  "name": "magic_guild",
+  "title": {
+    "ru": "Гильдия магии",
+    "en": "Magic guild"
+  },
+  "description": {
+    "ru": "Аккуратная магическая библиотека, хранящая книги заклинаний Империи",
+    "en": "Tidy magic library, which is keeping the books of the Empire spells"
+  },
+  "functional_description": {
+    "ru": "Позволяет изучать и использовать заклинания Империи",
+    "en": "Allows to study and use spells of Empire"
+  },
+  "requirements": [],
+  "cost": {
+    "gold": 150
+  }
+}

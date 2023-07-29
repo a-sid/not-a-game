@@ -1,5 +1,8 @@
 #pragma once
 
+#include "entities/common.h"
+#include "entities/resource.h"
+
 #include "util/id.h"
 #include "util/types.h"
 
@@ -7,21 +10,22 @@
 
 namespace NotAGame {
 
-class Building;
+struct Building;
 
-class Fraction;
-class UnitDescriptor;
+struct UnitDescriptor;
 class Icon;
 
 using BuildingId = Id<Building>;
 
-class Building {
-private:
-  std::vector<BuildingId> Dependencies_;
-  Id<Fraction> Fraction_;
-  Id<UnitDescriptor> UnitUnblocked_;
-  Id<Icon> Icon_;
-  Id<Icon> Picture_;
+struct Building : public Named {
+  Building(Named &&Name, const ResourceRegistry &Resources) noexcept
+      : Named{std::move(Name)}, Cost{Resources} {}
+  SmallVector<BuildingId, 4> Requirements;
+  std::string FunctionalDescription;
+  Id<UnitDescriptor> UnitUnblocked;
+  Resources Cost;
+  Id<Icon> BulidingIcon;
+  Id<Icon> Picture;
 };
 
 } // namespace NotAGame
