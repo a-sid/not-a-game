@@ -6,7 +6,10 @@
 
 namespace NotAGame {
 
-inline void Fail() noexcept { assert(false); }
+inline void Fail() noexcept {
+  assert(false);
+  abort();
+}
 
 inline void Unreachable() noexcept { Fail(); }
 

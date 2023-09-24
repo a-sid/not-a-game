@@ -17,6 +17,7 @@
 namespace NotAGame {
 
 class Animation;
+class Fraction;
 class Player;
 class Squad;
 
@@ -119,13 +120,16 @@ private:
 
 class Capital : public Town {
 public:
-  Capital(const CapitalSettings &Settings, Named Name, Dim Layer, Dim X, Dim Y)
+  Capital(const CapitalSettings &Settings, Named Name, Id<Fraction> FractionId, Dim Layer, Dim X,
+          Dim Y)
       : Town{std::move(Name),      Layer,   X, Y, Settings.Width, Settings.Height,
-             Settings.EntrancePos, MAX_SIZE} {
+             Settings.EntrancePos, MAX_SIZE},
+        FractionId_{FractionId} {
     Kind_ = Kind::Capital;
   }
 
 private:
+  Id<Fraction> FractionId_;
 };
 
 class Tile {
@@ -213,6 +217,10 @@ public:
     return ObjectsByLayer_[Layer];
   }
 
+  std::span<const Id<MapObjectPtr>> GetCapitals() const noexcept {
+    return {&*Capitals_.begin(), Capitals_.size()};
+  }
+
 private:
   Size Width_;
   Size Height_;
@@ -222,6 +230,8 @@ private:
   Utils::Registry<MapObjectPtr> MapObjects_;
   std::vector<std::vector<Id<MapObjectPtr>>> ObjectsByLayer_;
   Utils::Registry<Town> Towns_;
+
+  SmallVector<Id<MapObjectPtr>, 8> Capitals_;
 };
 
 class Path {

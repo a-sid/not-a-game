@@ -1,8 +1,11 @@
 #pragma once
 
-#include "entities/global_map.h"
 #include "entities/unit.h"
+#include "game/map.h"
 #include "util/types.h"
+
+#include "engine/player.h"
+#include "engine/player_state.h"
 
 #include <cstdint>
 #include <deque>
@@ -10,14 +13,17 @@
 
 namespace NotAGame {
 
-class Player {};
+struct PlayerAndState {
+  Player Player;
+  Size MapNumber;
+};
 
 class GameState {
 public:
-  static constexpr Size MAX_PLAYERS = 64;
-
 private:
-  using Players = SmallVector<Player, MAX_PLAYERS>;
+  using Players = SmallVector<PlayerAndState, kMaxPlayers>;
+  std::unordered_map<Size, Id<Player>> MapIndexToPlayer_;
+  std::unordered_map<Id<Player>, Size> PlayerToMapIndex_;
 
   GlobalMap GlobalMap_;
   std::deque<Unit> Units_;

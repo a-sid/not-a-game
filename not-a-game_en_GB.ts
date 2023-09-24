@@ -93,10 +93,82 @@
     </message>
 </context>
 <context>
+    <name>PlayerSetupDialog</name>
+    <message>
+        <location filename="src/client/ui/player_setup_dialog.ui" line="20"/>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/player_setup_dialog.ui" line="44"/>
+        <source>Player picture</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/player_setup_dialog.ui" line="53"/>
+        <source>Previous</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/player_setup_dialog.ui" line="60"/>
+        <location filename="src/client/ui/player_setup_dialog.ui" line="212"/>
+        <source>Next</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/player_setup_dialog.ui" line="86"/>
+        <source>Choose your Lord</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/player_setup_dialog.ui" line="119"/>
+        <source>Lord description</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/player_setup_dialog.ui" line="128"/>
+        <source>Choose difficulty</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/player_setup_dialog.ui" line="155"/>
+        <source>Difficulty description</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/player_setup_dialog.ui" line="174"/>
+        <source>Player name:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/player_setup_dialog.ui" line="181"/>
+        <source>Test Player</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/player_setup_dialog.ui" line="192"/>
+        <source>Back</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>SquadWidget</name>
     <message>
         <location filename="src/client/ui/squad_widget.ui" line="14"/>
         <source>Form</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>StartWindow</name>
+    <message>
+        <location filename="src/client/ui/start_window.ui" line="20"/>
+        <source>Welcome</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/start_window.ui" line="44"/>
+        <source>Тестовая игра</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

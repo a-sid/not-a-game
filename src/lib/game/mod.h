@@ -58,6 +58,7 @@ private:
   Utils::Registry<DamageSource, 16> DamageSources_;
   Utils::Registry<std::unique_ptr<UnitTrait>> UnitTraits_;
   //  Utils::Registry<ItemKind> ItemKinds_;
+  // Utils::Registry<Item> Items_;
   Utils::Registry<Spell> Spells_;
   // Utils::Registry<MapObjectPreset> MapObjectPresets_;
   Utils::Registry<Fraction, 8> Fractions_;

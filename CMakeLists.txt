@@ -102,6 +102,12 @@ add_executable(not-a-game
   src/client/ui/global_map_window.h
   src/client/ui/global_map_window.cpp
   src/client/ui/global_map_window.ui
+  src/client/ui/player_setup_dialog.cpp
+  src/client/ui/player_setup_dialog.h
+  src/client/ui/player_setup_dialog.ui
+  src/client/ui/start_window.cpp
+  src/client/ui/start_window.h
+  src/client/ui/start_window.ui
   src/client/ui/unit_widget.cpp
   src/client/ui/unit_widget.h
   src/client/ui/unit_widget.ui

@@ -72,7 +72,8 @@ NotAGame::GlobalMap GlobalMapWindow::CreateMap() noexcept {
   }
 
   auto Cap = std::make_unique<Capital>(Mod_.GetCapitalSettings(),
-                                       Named{"1st_capital", "Capital", "capitol"}, 0, 1, 1);
+                                       Named{"1st_capital", "Capital", "capitol"},
+                                       Mod_.GetFractions().GetId("mountain_clans"), 0, 1, 1);
   M.AddObject(0, 1, 1, "1st_capital", std::move(Cap));
 
   return M;

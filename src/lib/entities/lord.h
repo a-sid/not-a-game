@@ -9,11 +9,10 @@
 
 namespace NotAGame {
 
-class Lord {
+class Lord : public Named {
+  explicit Lord(Named &&Name) noexcept : Named{std::move(Name)} {}
 
 private:
-  std::string Name_;
-  std::string Description_;
   SmallVector<Id<Building>, 8> StartBuildings_;
   bool SpecialThiefOpsAllowed_ = false;
   Size TownUpgradeCostBonus = 0;
