@@ -82,6 +82,7 @@ add_library(entities STATIC
 )
 
 add_library(state STATIC
+  src/lib/state/state.cpp
   src/lib/state/state.h
   src/lib/state/view.h
 )
@@ -94,6 +95,9 @@ add_library(engine STATIC
   src/lib/engine/player.h
   src/lib/engine/player_state.h
 )
+
+target_link_libraries(engine PRIVATE state)
+
 
 add_executable(not-a-game
   main.cpp
