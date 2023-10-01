@@ -23,8 +23,10 @@ constexpr int kBorderWidth = 200;
 
 } // namespace
 
-GlobalMapWindow::GlobalMapWindow(QWidget *Parent) noexcept
-    : QMainWindow{Parent}, UI_{new Ui::GlobalMapWindow}, Mod_{LoadMod()}, GlobalMap_{CreateMap()} {
+GlobalMapWindow::GlobalMapWindow(Mod &Mod, GlobalMap &GlobalMap, Engine &Engine, Player &Player,
+                                 QWidget *Parent) noexcept
+    : QMainWindow{Parent}, UI_{new Ui::GlobalMapWindow}, Mod_{Mod},
+      GlobalMap_{GlobalMap}, Engine_{Engine}, Player_{Player} {
   UI_->setupUi(this);
 
   UI_->GlobalMapView->setRenderHint(QPainter::Antialiasing);
@@ -53,31 +55,6 @@ GlobalMapWindow::GlobalMapWindow(QWidget *Parent) noexcept
 }
 
 GlobalMapWindow::~GlobalMapWindow() noexcept { delete UI_; }
-
-NotAGame::Mod GlobalMapWindow::LoadMod() noexcept {
-  return NotAGame::Mod::Load(std::string{"basic"});
-}
-
-NotAGame::GlobalMap GlobalMapWindow::CreateMap() noexcept {
-  NotAGame::GlobalMap M(1, 16, 16);
-  const auto &Terrains = Mod_.GetTerrains();
-  const auto NumTerrains = Terrains.size();
-
-  for (Size Layer = 0, LayerE = GlobalMap_.GetNumLayers(); Layer < LayerE; ++Layer) {
-    for (Size X = 0, XE = GlobalMap_.GetWidth(); X < XE; ++X) {
-      for (Size Y = 0, YE = GlobalMap_.GetHeight(); Y < YE; ++Y) {
-        M.GetTile(Layer, X, Y).Terrain_ = std::rand() % NumTerrains;
-      }
-    }
-  }
-
-  auto Cap = std::make_unique<Capital>(Mod_.GetCapitalSettings(),
-                                       Named{"1st_capital", "Capital", "capitol"},
-                                       Mod_.GetFractions().GetId("mountain_clans"), 0, 1, 1);
-  M.AddObject(0, 1, 1, "1st_capital", std::move(Cap));
-
-  return M;
-}
 
 void GlobalMapWindow::DrawRect(QPainter &Painter, QPen Pen, QBrush Brush, int X, int Y, int Width,
                                int Height) noexcept {

@@ -40,6 +40,7 @@ public:
   const auto &GetResources() const noexcept { return Resources_; }
   const auto &GetSpells() const noexcept { return Spells_; }
   const auto &GetFractions() const noexcept { return Fractions_; }
+  const auto &GetLords() const noexcept { return Lords_; }
 
   const TownSettings &GetTownSettings() const noexcept { return TownSettings_; }
   const CapitalSettings &GetCapitalSettings() const noexcept { return CapitalSettings_; }

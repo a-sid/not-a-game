@@ -87,6 +87,7 @@ add_library(state STATIC
 )
 
 add_library(engine STATIC
+  src/lib/engine/engine.cpp
   src/lib/engine/engine.h
   src/lib/engine/event.h
   src/lib/engine/map_view.h

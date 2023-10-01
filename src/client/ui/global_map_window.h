@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/engine.h"
+#include "engine/player.h"
 #include "entities/global_map.h"
 #include "game/mod.h"
 
@@ -36,7 +38,8 @@ class GlobalMapWindow : public QMainWindow {
   Q_OBJECT
 
 public:
-  GlobalMapWindow(QWidget *Parent = nullptr) noexcept;
+  GlobalMapWindow(NotAGame::Mod &Mod, NotAGame::GlobalMap &GlobalMap, NotAGame::Engine &Engine,
+                  NotAGame::Player &Player, QWidget *Parent = nullptr) noexcept;
   ~GlobalMapWindow() noexcept;
 
 public slots:
@@ -53,8 +56,6 @@ private:
     QPoint ScrollingPos;
   };
 
-  NotAGame::Mod LoadMod() noexcept;
-  NotAGame::GlobalMap CreateMap() noexcept;
   void DrawMap() noexcept;
   void DrawRect(QPainter &Painter, QPen Pen, QBrush Brush, int X, int Y, int Width,
                 int Height) noexcept;
@@ -67,8 +68,10 @@ private:
 
   Ui::GlobalMapWindow *UI_;
   QGraphicsScene Scene_;
-  NotAGame::Mod Mod_;
-  NotAGame::GlobalMap GlobalMap_;
+  NotAGame::Mod &Mod_;
+  NotAGame::GlobalMap &GlobalMap_;
+  NotAGame::Engine &Engine_;
+  NotAGame::Player &Player_;
   std::vector<QBrush> Brushes_;
 
   QPixmap MapPixmap_;

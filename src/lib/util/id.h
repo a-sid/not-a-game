@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <limits>
 
 namespace NotAGame {
@@ -25,6 +26,7 @@ public:
   Id(size_t Value) noexcept : Value_{static_cast<value_type>(Value)} {}
 
   operator value_type() const noexcept { return Value_; }
+  value_type GetValue() const noexcept { return Value_; }
 
   bool IsValid() const noexcept { return Value_ != INVALID_ID; }
   bool IsInvalid() const noexcept { return !IsValid(); }
@@ -34,3 +36,13 @@ private:
 };
 
 } // namespace NotAGame
+
+namespace std {
+
+template <typename T> struct hash<NotAGame::Id<T>> {
+  size_t operator()(NotAGame::Id<T> Id) const noexcept {
+    return std::hash<typename NotAGame::Id<T>::value_type>{}(Id.GetValue());
+  }
+};
+
+} // namespace std

@@ -140,6 +140,8 @@ public:
   std::optional<Grave> Grave_;
   Id<MapObjectPtr> Object_ = NullId;
   Id<Squad> Squad_ = NullId;
+  // By default, all tiles are visible to the neutral player which has index 0.
+  uint16_t VisibilityFlags = 1;
 
   bool HasGrave() const noexcept { return Grave_.has_value(); }
   Grave &AddGrave(BattleResult Result) noexcept {
@@ -154,8 +156,7 @@ public:
 
 class GlobalMap {
 public:
-  GlobalMap(/*const Utils::Registry<MapObject> &MapObjects,*/ Size Layers, Size Width,
-            Size Height) noexcept
+  GlobalMap(Size Layers, Size Width, Size Height) noexcept
       : Width_{Width}, Height_{Height}, Layers_{Layers} {
     Tiles_.resize(Width * Height * Layers);
     ObjectsByLayer_.resize(Layers);
@@ -177,12 +178,18 @@ public:
     if (!CanPlaceObject(Layer, X, Y, *Object)) {
       return Status::Error(ErrorCode::MapError, "Object overlap is not allowed");
     }
+
+    const bool IsCapital = Object->GetKind() == MapObject::Kind::Capital;
     auto Id = MapObjects_.AddObject(std::move(Name), std::move(Object));
     ObjectsByLayer_[Layer].push_back(Id);
     for (Dim x = X; x < MaxX; ++x) {
       for (Dim y = Y; y < MaxY; ++y) {
         GetTile(Layer, x, y).Object_ = Id;
       }
+    }
+
+    if (IsCapital) {
+      Capitals_.push_back(Id);
     }
     return Status::Success();
   }
@@ -220,6 +227,8 @@ public:
   std::span<const Id<MapObjectPtr>> GetCapitals() const noexcept {
     return {&*Capitals_.begin(), Capitals_.size()};
   }
+
+  Size GetNumCapitals() const noexcept { return Capitals_.size(); }
 
 private:
   Size Width_;
