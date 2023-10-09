@@ -11,30 +11,42 @@ struct PlayerAddResult {
   Size PlayerId;
 };
 
+struct StartGameResponse {
+  SmallVector<Size, kMaxPlayers> TurnOrder;
+};
+
+class EventListener {};
+
 class Engine {
 public:
   Engine(Mod &M, GlobalMap &Map) noexcept;
-  ErrorOr<PlayerAddResult> AddPlayer(const Player &Player) noexcept;
 
-  ErrorOr<Size> PlayerConnect() noexcept;
-  Status PlayerDisconnect(PlayerId Id) noexcept;
-  Status PlayerReady(PlayerId Id) noexcept;
-  Status PlayerNotReady(PlayerId Id) noexcept;
-  Status SetPlayerName(PlayerId Id, std::string Name) noexcept;
-  Status SetPlayerLord(PlayerId PlayerId, Id<Lord> LordId) noexcept;
-  Status SetPlayerCapital(PlayerId PlayerId, Id<MapObjectPtr> CapitalId) noexcept;
-  Status PlayerTurnOrderEarlier(PlayerId PlayerId) noexcept;
-  Status PlayerTurnOrderLater(PlayerId PlayerId) noexcept;
+  ErrorOr<LobbyPlayerId> PlayerConnect(PlayerSource PlayerSource) noexcept;
+  Status PlayerDisconnect(LobbyPlayerId Id) noexcept;
+  ErrorOr<StartGameResponse> PlayerReady(LobbyPlayerId Id) noexcept;
+  Status PlayerNotReady(LobbyPlayerId Id) noexcept;
+  Status SetPlayerName(LobbyPlayerId Id, std::string Name) noexcept;
+  Status SetPlayerLord(LobbyPlayerId PlayerId, Id<Lord> LordId) noexcept;
+  Status SetPlayerId(LobbyPlayerId LobbyPlayerId, PlayerId PlayerId) noexcept;
+  Status PlayerTurnOrderEarlier(LobbyPlayerId LobbyPlayerId) noexcept;
+  Status PlayerTurnOrderLater(LobbyPlayerId LobbyPlayerId) noexcept;
 
-  Status StartGame() noexcept;
+  StartGameResponse StartGame() noexcept;
   Status EndTurn(const Player &Player) noexcept;
+
+  void SetEventListener(EventListener *Listener) noexcept { EventListener_ = Listener; }
 
 private:
   template <typename State, typename Fn>
   auto CheckStateAndCall(Fn &&Func, const char *FnName) noexcept
       -> decltype(Func(static_cast<State *>(nullptr)));
 
+  template <typename State, typename Fn>
+  auto EnsureStateAndCall(Fn &&Func, const char *FnName) noexcept
+      -> decltype(Func(static_cast<State *>(nullptr)));
+
   GameState State_;
+  EventListener *EventListener_;
 };
 
 } // namespace NotAGame

@@ -1,6 +1,7 @@
 #include "start_window.h"
 #include "ui_start_window.h"
 
+#include "global_map_window.h"
 #include "player_setup_dialog.h"
 
 #include "engine/engine.h"
@@ -31,9 +32,11 @@ NotAGame::GlobalMap StartWindow::CreateMap() noexcept {
     }
   }
 
-  auto Cap = std::make_unique<Capital>(Mod_.GetCapitalSettings(),
-                                       Named{"1st_capital", "Capital", "capitol"},
-                                       Mod_.GetFractions().GetId("mountain_clans"), 0, 1, 1);
+  GameplaySystems Systems{.LandPropagation{LandPropagationSystem{2}},
+                          .Visibility{2, Dims3D{1, 16, 16}}};
+  auto Cap =
+      std::make_unique<Capital>(Mod_, Systems, Named{"1st_capital", "Capital", "capitol"}, 0, 1, 1,
+                                /* PlayerId = */ 0, Mod_.GetFractions().GetId("mountain_clans"));
   M.AddObject(0, 1, 1, "1st_capital", std::move(Cap));
 
   return M;
@@ -49,10 +52,17 @@ void StartWindow::on_btnTestGame_clicked() {
                .PlayerColor = NotAGame::ColorByTurnOrder(1)};
 
   Engine Eng{Mod_, GlobalMap_};
-  auto PlayerId = Eng.PlayerConnect().GetValue();
-  Eng.SetPlayerCapital(PlayerId, GlobalMap_.GetCapitals()[0]);
+  auto PlayerId = Eng.PlayerConnect(PlayerSource::Human).GetValue();
+  auto CapitalId = GlobalMap_.GetCapitals()[0];
+  Eng.SetPlayerId(PlayerId, GlobalMap_.GetCapital(CapitalId).GetOwner());
   Eng.SetPlayerName(PlayerId, std::move(Human.Name));
   Eng.SetPlayerLord(PlayerId, Human.LordId);
-  Eng.PlayerReady(PlayerId);
-  // Eng.StartGame();
+  auto Response = Eng.PlayerReady(PlayerId);
+
+  if (!Response.IsError()) {
+    auto *W = new GlobalMapWindow{Mod_, GlobalMap_, Eng, Human, this};
+    Eng.SetEventListener(W);
+    W->show();
+    // this->hide();
+  }
 }

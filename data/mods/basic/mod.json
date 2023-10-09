@@ -131,6 +131,11 @@
       "y": 3
     }
   },
+  "land_propagation_settings": {
+    "town": [1, 2, 3, 4, 5],
+    "capital": 6,
+    "rod": 2
+  },
   "grid_settings": {
     "width": 2,
     "height": 3

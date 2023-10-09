@@ -15,61 +15,81 @@ auto Engine::CheckStateAndCall(Fn &&Func, const char *FnName) noexcept
   return Func(SubState);
 }
 
-ErrorOr<Size> Engine::PlayerConnect() noexcept {
-  return CheckStateAndCall<PrepareGameState>([&](auto *State) { return State->PlayerConnect(); },
-                                             "PlayerConnect");
+template <typename State, typename Fn>
+auto Engine::EnsureStateAndCall(Fn &&Func, const char *FnName) noexcept
+    -> decltype(Func(static_cast<State *>(nullptr))) {
+  auto *SubState = std::get_if<State>(&State_);
+  assert(SubState);
+  return Func(SubState);
 }
 
-Status Engine::PlayerDisconnect(PlayerId Id) noexcept {
+ErrorOr<LobbyPlayerId> Engine::PlayerConnect(PlayerSource PlayerSource) noexcept {
+  return CheckStateAndCall<PrepareGameState>(
+      [&](auto *State) { return State->PlayerConnect(PlayerSource); }, "PlayerConnect");
+}
+
+Status Engine::PlayerDisconnect(LobbyPlayerId Id) noexcept {
   return CheckStateAndCall<PrepareGameState>(
       [&](auto *State) { return State->PlayerDisconnect(Id); }, "PlayerDisconnect");
 }
 
-Status Engine::PlayerReady(PlayerId Id) noexcept {
-  auto ReadyStatus = CheckStateAndCall<PrepareGameState>(
-      [&](auto *State) { return State->PlayerReady(Id); }, "PlayerReady");
-  if (ReadyStatus.IsError()) {
-    return ReadyStatus;
-  }
-  return StartGame();
-}
-
-Status Engine::PlayerNotReady(PlayerId Id) noexcept {
-  return CheckStateAndCall<PrepareGameState>([&](auto *State) { return State->PlayerNotReady(Id); },
-                                             "PlayerNotReady");
-}
-
-Status Engine::SetPlayerName(PlayerId Id, std::string Name) noexcept {
+ErrorOr<StartGameResponse> Engine::PlayerReady(LobbyPlayerId LobbyPlayerId) noexcept {
   return CheckStateAndCall<PrepareGameState>(
-      [&](auto *State) { return State->SetPlayerName(Id, std::move(Name)); }, "SetPlayerName");
+      [&](auto *State) -> ErrorOr<StartGameResponse> {
+        auto ReadyStatus = State->PlayerReady(LobbyPlayerId);
+        if (ReadyStatus.IsError()) {
+          return ReadyStatus;
+        }
+        if (State->AreAllPlayersReady()) {
+          return StartGame();
+        }
+        return Status::Success();
+      },
+      "PlayerReady");
 }
 
-Status Engine::SetPlayerLord(PlayerId PlayerId, Id<Lord> LordId) noexcept {
+Status Engine::PlayerNotReady(LobbyPlayerId LobbyPlayerId) noexcept {
   return CheckStateAndCall<PrepareGameState>(
-      [&](auto *State) { return State->SetPlayerLord(PlayerId, LordId); }, "SetPlayerLord");
+      [&](auto *State) { return State->PlayerNotReady(LobbyPlayerId); }, "PlayerNotReady");
 }
 
-Status Engine::SetPlayerCapital(PlayerId PlayerId, Id<MapObjectPtr> CapitalId) noexcept {
+Status Engine::SetPlayerName(LobbyPlayerId LobbyPlayerId, std::string Name) noexcept {
   return CheckStateAndCall<PrepareGameState>(
-      [&](auto *State) { return State->SetPlayerCapital(PlayerId, CapitalId); },
-      "SetPlayerCapital");
+      [&](auto *State) { return State->SetPlayerName(LobbyPlayerId, std::move(Name)); },
+      "SetPlayerName");
 }
 
-Status Engine::PlayerTurnOrderEarlier(PlayerId PlayerId) noexcept {
+Status Engine::SetPlayerLord(LobbyPlayerId LobbyPlayerId, Id<Lord> LordId) noexcept {
   return CheckStateAndCall<PrepareGameState>(
-      [&](auto *State) { return State->PlayerTurnOrderEarlier(PlayerId); },
+      [&](auto *State) { return State->SetPlayerLord(LobbyPlayerId, LordId); }, "SetPlayerLord");
+}
+
+Status Engine::SetPlayerId(LobbyPlayerId LobbyPlayerId, PlayerId PlayerId) noexcept {
+  return CheckStateAndCall<PrepareGameState>(
+      [&](auto *State) { return State->SetPlayerId(LobbyPlayerId, PlayerId); }, "SetPlayerCapital");
+}
+
+Status Engine::PlayerTurnOrderEarlier(LobbyPlayerId LobbyPlayerId) noexcept {
+  return CheckStateAndCall<PrepareGameState>(
+      [&](auto *State) { return State->PlayerTurnOrderEarlier(LobbyPlayerId); },
       "PlayerTurnOrderEarlier");
 }
 
-Status Engine::PlayerTurnOrderLater(PlayerId PlayerId) noexcept {
+Status Engine::PlayerTurnOrderLater(LobbyPlayerId LobbyPlayerId) noexcept {
   return CheckStateAndCall<PrepareGameState>(
-      [&](auto *State) { return State->PlayerTurnOrderLater(PlayerId); }, "PlayerTurnOrderLater");
+      [&](auto *State) { return State->PlayerTurnOrderLater(LobbyPlayerId); },
+      "PlayerTurnOrderLater");
 }
 
-Status Engine::StartGame() noexcept {
-  // Are the slots filled?
-  Player AI{.Name = "Neutral", .PlayerColor = NotAGame::ColorByTurnOrder(0)};
-  return Status::Success();
+StartGameResponse Engine::StartGame() noexcept {
+  auto NeutralId = EnsureStateAndCall<PrepareGameState>(
+      [&](auto *State) { return State->NeutralPlayerConnect(); }, "NeutralPlayerConnect");
+  SetPlayerName(NeutralId, "Neutral");
+
+  auto TurnOrder = EnsureStateAndCall<PrepareGameState>(
+      [&](auto *State) { return State->GetTurnOrder(); }, "StartGame");
+  StartGameResponse Response{.TurnOrder = {TurnOrder.begin(), TurnOrder.end()}};
+  return Response;
 }
 
 } // namespace NotAGame

@@ -38,11 +38,11 @@ FetchContent_Declare(fmt
 )
 FetchContent_MakeAvailable(fmt)
 
-FetchContent_Declare(ranges
+FetchContent_Declare(range-v3
   GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
   GIT_TAG master
 )
-FetchContent_MakeAvailable(ranges)
+FetchContent_MakeAvailable(range-v3)
 
 set(TS_FILES not-a-game_en_GB.ts)
 
@@ -69,6 +69,7 @@ add_library(util STATIC
 add_library(entities STATIC
   src/lib/entities/building.h
   src/lib/entities/common.h
+  src/lib/entities/components.h
   src/lib/entities/effect.h
   src/lib/entities/fraction.h
   src/lib/entities/global_map.cpp
@@ -81,11 +82,15 @@ add_library(entities STATIC
   src/lib/entities/unit.cpp
 )
 
+target_link_libraries(entities PRIVATE range-v3::range-v3)
+
 add_library(state STATIC
   src/lib/state/state.cpp
   src/lib/state/state.h
   src/lib/state/view.h
 )
+
+target_link_libraries(state PRIVATE range-v3::range-v3)
 
 add_library(engine STATIC
   src/lib/engine/engine.cpp

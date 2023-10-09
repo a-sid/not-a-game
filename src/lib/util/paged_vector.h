@@ -43,6 +43,16 @@ public:
     return Storage_[PageNo][ElementIdx];
   }
 
+  const T &back() const noexcept {
+    assert(!empty());
+    return (*this)[size() - 1];
+  }
+
+  T &back() noexcept {
+    assert(!empty());
+    return (*this)[size() - 1];
+  }
+
   const size_t size() const noexcept { return LastPageIdx_ * N + Storage_[LastPageIdx_].size(); }
   const size_t capacity() const noexcept { return Storage_.size() * N; }
   const size_t empty() const noexcept { return size() == 0; }

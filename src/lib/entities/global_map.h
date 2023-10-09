@@ -1,7 +1,7 @@
 #pragma once
 
 #include "entities/common.h"
-#include "game/settings.h"
+#include "entities/components.h"
 #include "status/status.h"
 #include "util/id.h"
 #include "util/registry.h"
@@ -18,6 +18,7 @@ namespace NotAGame {
 
 class Animation;
 class Fraction;
+class Mod;
 class Player;
 class Squad;
 
@@ -35,7 +36,7 @@ using MapObjectPtr = std::unique_ptr<MapObject>;
 
 class MapObject : public Named {
 public:
-  enum Kind { Capital, Town, Shop, MagicShop, TrainingCamp, Resource, Ruins, Other };
+  enum Kind { Capital, Town, Rod, Shop, MagicShop, TrainingCamp, Resource, Ruins, Other };
 
   MapObject(Named Name, Kind Kind, Dim Layer, Dim X, Dim Y, Size Width, Size Height,
             std::optional<Coord> EntrancePos) noexcept
@@ -49,6 +50,15 @@ public:
   Size GetWidth() const noexcept { return Width_; }
   Size GetHeight() const noexcept { return Height_; }
   std::optional<Coord> GetEntrancePos() const noexcept { return EntrancePos_; }
+
+  template <typename T> const T &GetAs() const noexcept {
+    assert(GetKind() == T::Class);
+    return *static_cast<const T *>(this);
+  }
+
+  template <typename T> const T *TryGetAs() const noexcept {
+    return (GetKind() == T::Class) ? static_cast<const T *>(this) : nullptr;
+  }
 
 protected:
   Kind Kind_;
@@ -88,6 +98,16 @@ private:
   BattleResults BattleResults_;
 };
 
+class Rod : public MapObject {
+public:
+  static constexpr Kind Class = Kind::Rod;
+  Rod(const Mod &M, GameplaySystems &GameplaySystems, Dim Layer, Dim X, Dim Y,
+      Id<Player> PlayerId) noexcept;
+
+private:
+  Id<LandPropagation> LandPropagation_;
+};
+
 struct TownSettings {
   Coord EntrancePos;
   Dim Width;
@@ -102,33 +122,40 @@ struct CapitalSettings {
 
 class Town : public MapObject {
 public:
-  Town(const TownSettings &Settings, Named Name, Dim Layer, Dim X, Dim Y, Size Level) noexcept;
-  Town(Named Name, Dim Layer, Dim X, Dim Y, Dim Width, Dim Height, Coord EntrancePos,
-       Size Level) noexcept;
+  static constexpr Kind Class = Kind::Town;
 
-  Id<Player> GetOwner() const noexcept { return Owner_; }
+  Town(const Mod &Mod, GameplaySystems &Systems, Named Name, Dim Layer, Dim X, Dim Y, Size Level,
+       PlayerId PlayerId) noexcept;
+
+  PlayerId GetOwner() const noexcept { return Owner_; }
   void SetOwner(Id<Player> PlayerId) noexcept { Owner_ = PlayerId; }
   bool IsNeutral() const noexcept { return Owner_.IsInvalid(); }
 
-private:
-  std::string Name_;
+protected:
   Size Level_;
+  Id<LandPropagation> LandPropagation_;
+  Id<VisibilityRange> VisibilityRange_;
   Id<Squad> Guard_;
   std::optional<Id<Squad>> Squad_;
   Id<Player> Owner_;
 };
 
-class Capital : public Town {
+class Capital : public MapObject {
 public:
-  Capital(const CapitalSettings &Settings, Named Name, Id<Fraction> FractionId, Dim Layer, Dim X,
-          Dim Y)
-      : Town{std::move(Name),      Layer,   X, Y, Settings.Width, Settings.Height,
-             Settings.EntrancePos, MAX_SIZE},
-        FractionId_{FractionId} {
-    Kind_ = Kind::Capital;
-  }
+  static constexpr Kind Class = Kind::Capital;
+
+  Capital(const Mod &Mod, GameplaySystems &Systems, Named Name, Dim Layer, Dim X, Dim Y,
+          PlayerId PlayerId, Id<Fraction> FractionId) noexcept;
+
+  PlayerId GetOwner() const noexcept { return Owner_; }
 
 private:
+  Size Level_;
+  Id<LandPropagation> LandPropagation_;
+  Id<VisibilityRange> VisibilityRange_;
+  Id<Squad> Guard_;
+  std::optional<Id<Squad>> Squad_;
+  Id<Player> Owner_;
   Id<Fraction> FractionId_;
 };
 
@@ -229,6 +256,10 @@ public:
   }
 
   Size GetNumCapitals() const noexcept { return Capitals_.size(); }
+
+  const Capital &GetCapital(Id<MapObjectPtr> ObjectId) const noexcept {
+    return GetObject(ObjectId).GetAs<Capital>();
+  }
 
 private:
   Size Width_;

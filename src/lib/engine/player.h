@@ -15,14 +15,13 @@ struct Color {
 
 namespace NotAGame {
 
-constexpr Size kMaxPlayers = 16;
-
 struct Color {
   uint16_t Hue;
 };
 
 class Event;
 class Lord;
+class Player;
 
 class PlayerActions {
   virtual void HandleEvent(const Event &E) = 0;
@@ -33,7 +32,6 @@ inline Color ColorByTurnOrder(Size TurnOrder) noexcept {
   // Heroes-like table.
   if (TurnOrder < 8) {
     std::array<uint16_t, 8> Hues = {
-        300, // Magenta, for neutral player.
         0,   // Red
         240, // Blue
         60,  // Yellow
@@ -41,6 +39,7 @@ inline Color ColorByTurnOrder(Size TurnOrder) noexcept {
         30,  // Orange
         270, // Violet
         180, // Cyan
+        300, // Magenta
     };
     return Color{Hues[TurnOrder]};
   }
@@ -49,15 +48,22 @@ inline Color ColorByTurnOrder(Size TurnOrder) noexcept {
 
 enum class PlayerConnectionState { NotReady, Ready, Online, Offline };
 
+enum class PlayerSource { Human, AI };
+
+using PlayerId = Id<Player>;
+using LobbyPlayerId = Size;
+
 struct Player {
-  Size PlayerId;
+  PlayerId MapId;
+  LobbyPlayerId LobbyId;
+  PlayerSource Source = PlayerSource::AI;
   std::string Name;
   Id<Fraction> FractionId;
   Id<Lord> LordId;
   Id<Icon> IconId;
   Id<MapObjectPtr> CapitalId;
-  Color PlayerColor;
-  Size TurnOrder;
+  Color PlayerColor = Color{.Hue = 10000};
+  Size TurnOrder = 10000;
   PlayerConnectionState State = PlayerConnectionState::NotReady;
 };
 

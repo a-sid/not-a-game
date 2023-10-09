@@ -2,44 +2,55 @@
 
 #include "util/map_utils.h"
 
+#include <range/v3/all.hpp>
+
 namespace NotAGame {
 
-ErrorOr<Size> PrepareGameState::PlayerConnect() noexcept {
+ErrorOr<LobbyPlayerId> PrepareGameState::PlayerConnect(PlayerSource PlayerSource) noexcept {
   if (Players_.size() == PlayersCount_) {
     return Status::Error(ErrorCode::LobbyFull, "Lobby is full");
   }
 
-  PlayerId Id = Players_.size();
-  Players_.emplace(Id, Player{.PlayerId = Id});
+  LobbyPlayerId Id = LobbyPlayerIdCounter_++;
+  Players_.emplace(Id, Player{.LobbyId = Id, .Source = PlayerSource});
   TurnOrder_.push_back(Id);
   return Id;
 }
 
-Status PrepareGameState::PlayerDisconnect(PlayerId Id) noexcept {
-  const auto PlayerIt = Players_.find(Id);
+LobbyPlayerId PrepareGameState::NeutralPlayerConnect() noexcept {
+  LobbyPlayerId Id = LobbyPlayerIdCounter_++;
+  Players_.emplace(Id, Player{.LobbyId = Id, .Source = PlayerSource::AI});
+  TurnOrder_.push_back(Id);
+  return Id;
+}
+
+Status PrepareGameState::PlayerDisconnect(LobbyPlayerId LobbyPlayerId) noexcept {
+  const auto PlayerIt = Players_.find(LobbyPlayerId);
   if (PlayerIt == Players_.end()) {
-    return MakePlayerNotFoundError(Id);
+    return MakePlayerNotFoundError(LobbyPlayerId);
   }
 
-  PlayerToCapital_.erase(Id);
+  LobbyIdToMapId_.erase(LobbyPlayerId);
   const auto &Player = PlayerIt->second;
   if (Player.CapitalId.IsValid()) {
-    CapitalToPlayer_.erase(Player.CapitalId);
+    PlayerIdToLobbyId_.erase(Player.MapId);
   }
 
   if (Player.State == PlayerConnectionState::Ready) {
     --NumPlayersReady_;
   }
 
-  std::erase(TurnOrder_, Id);
+  auto TurnIt = ranges::find(TurnOrder_, LobbyPlayerId);
+  assert(TurnIt != TurnOrder_.end());
+  TurnOrder_.erase(TurnIt);
   Players_.erase(PlayerIt);
   return Status::Success();
 }
 
-Status PrepareGameState::PlayerReady(PlayerId Id) noexcept {
-  auto *Player = Utils::MapFindPtr(Players_, Id);
+Status PrepareGameState::PlayerReady(LobbyPlayerId LobbyPlayerId) noexcept {
+  auto *Player = Utils::MapFindPtr(Players_, LobbyPlayerId);
   if (!Player) {
-    return MakePlayerNotFoundError(Id);
+    return MakePlayerNotFoundError(LobbyPlayerId);
   }
 
   if (Player->State == PlayerConnectionState::NotReady) {
@@ -50,10 +61,10 @@ Status PrepareGameState::PlayerReady(PlayerId Id) noexcept {
   return Status::Success();
 }
 
-Status PrepareGameState::PlayerNotReady(PlayerId Id) noexcept {
-  auto *Player = Utils::MapFindPtr(Players_, Id);
+Status PrepareGameState::PlayerNotReady(LobbyPlayerId LobbyPlayerId) noexcept {
+  auto *Player = Utils::MapFindPtr(Players_, LobbyPlayerId);
   if (!Player) {
-    return MakePlayerNotFoundError(Id);
+    return MakePlayerNotFoundError(LobbyPlayerId);
   }
 
   if (Player->State == PlayerConnectionState::Ready) {
@@ -64,20 +75,20 @@ Status PrepareGameState::PlayerNotReady(PlayerId Id) noexcept {
   return Status::Success();
 }
 
-Status PrepareGameState::SetPlayerName(PlayerId Id, std::string Name) noexcept {
-  auto *Player = Utils::MapFindPtr(Players_, Id);
+Status PrepareGameState::SetPlayerName(LobbyPlayerId LobbyPlayerId, std::string Name) noexcept {
+  auto *Player = Utils::MapFindPtr(Players_, LobbyPlayerId);
   if (!Player) {
-    return MakePlayerNotFoundError(Id);
+    return MakePlayerNotFoundError(LobbyPlayerId);
   }
 
   Player->Name = std::move(Name);
   return Status::Success();
 }
 
-Status PrepareGameState::SetPlayerLord(PlayerId PlayerId, Id<Lord> LordId) noexcept {
-  auto *Player = Utils::MapFindPtr(Players_, PlayerId);
+Status PrepareGameState::SetPlayerLord(LobbyPlayerId LobbyPlayerId, Id<Lord> LordId) noexcept {
+  auto *Player = Utils::MapFindPtr(Players_, LobbyPlayerId);
   if (!Player) {
-    return MakePlayerNotFoundError(PlayerId);
+    return MakePlayerNotFoundError(LobbyPlayerId);
   }
 
   if (LordId >= Mod_.GetLords().size()) {
@@ -88,37 +99,30 @@ Status PrepareGameState::SetPlayerLord(PlayerId PlayerId, Id<Lord> LordId) noexc
   return Status::Success();
 }
 
-Status PrepareGameState::SetPlayerCapital(PlayerId PlayerId, Id<MapObjectPtr> CapitalId) noexcept {
-  auto *Player = Utils::MapFindPtr(Players_, PlayerId);
+Status PrepareGameState::SetPlayerId(LobbyPlayerId LobbyPlayerId, PlayerId PlayerId) noexcept {
+  auto *Player = Utils::MapFindPtr(Players_, LobbyPlayerId);
   if (!Player) {
-    return MakePlayerNotFoundError(PlayerId);
-  }
-  const auto Capitals = GlobalMap_.GetCapitals();
-  if (std::find(Capitals.begin(), Capitals.end(), CapitalId) == Capitals.end()) {
-    return Status::Error(ErrorCode::ObjectNotFound)
-           << "Capital with object id " << CapitalId << " not found";
+    return MakePlayerNotFoundError(LobbyPlayerId);
   }
 
-  const auto *ExistingPlayer = Utils::MapFindPtr(CapitalToPlayer_, CapitalId);
-  if (ExistingPlayer && *ExistingPlayer != PlayerId) {
+  const auto [It, IsNew] = PlayerIdToLobbyId_.emplace(PlayerId, LobbyPlayerId);
+  if (!IsNew && It->second != LobbyPlayerId) {
     return Status::Error(ErrorCode::GameSlotBusy)
-           << "Capital with object id " << CapitalId << " is busy by another player with id "
-           << *ExistingPlayer;
+           << "Player with id " << PlayerId << " is taken by another player with id " << It->second;
   }
 
-  Player->CapitalId = CapitalId;
-  PlayerToCapital_[PlayerId] = CapitalId;
-  CapitalToPlayer_[CapitalId] = PlayerId;
+  Player->MapId = PlayerId;
+  LobbyIdToMapId_[LobbyPlayerId] = PlayerId;
   return Status::Success();
 }
 
-Status PrepareGameState::PlayerTurnOrderEarlier(PlayerId PlayerId) noexcept {
-  auto *Player = Utils::MapFindPtr(Players_, PlayerId);
+Status PrepareGameState::PlayerTurnOrderEarlier(LobbyPlayerId LobbyPlayerId) noexcept {
+  auto *Player = Utils::MapFindPtr(Players_, LobbyPlayerId);
   if (!Player) {
-    return MakePlayerNotFoundError(PlayerId);
+    return MakePlayerNotFoundError(LobbyPlayerId);
   }
 
-  auto Pos = std::find(TurnOrder_.begin(), TurnOrder_.end(), PlayerId);
+  auto Pos = std::find(TurnOrder_.begin(), TurnOrder_.end(), LobbyPlayerId);
   if (Pos != TurnOrder_.begin()) {
     auto Prev = std::prev(Pos);
     std::swap(*Pos, *Prev);
@@ -127,13 +131,13 @@ Status PrepareGameState::PlayerTurnOrderEarlier(PlayerId PlayerId) noexcept {
   return Status::Success();
 }
 
-Status PrepareGameState::PlayerTurnOrderLater(PlayerId PlayerId) noexcept {
-  auto *Player = Utils::MapFindPtr(Players_, PlayerId);
+Status PrepareGameState::PlayerTurnOrderLater(LobbyPlayerId LobbyPlayerId) noexcept {
+  auto *Player = Utils::MapFindPtr(Players_, LobbyPlayerId);
   if (!Player) {
-    return MakePlayerNotFoundError(PlayerId);
+    return MakePlayerNotFoundError(LobbyPlayerId);
   }
 
-  auto Pos = std::find(TurnOrder_.begin(), TurnOrder_.end(), PlayerId);
+  auto Pos = std::find(TurnOrder_.begin(), TurnOrder_.end(), LobbyPlayerId);
   auto Next = std::next(Pos);
   if (Next != TurnOrder_.end()) {
     std::swap(*Pos, *Next);
@@ -141,5 +145,7 @@ Status PrepareGameState::PlayerTurnOrderLater(PlayerId PlayerId) noexcept {
 
   return Status::Success();
 }
+
+OnlineGameState::OnlineGameState(GlobalMap &Map) noexcept : GlobalMap_{Map} {}
 
 } // namespace NotAGame

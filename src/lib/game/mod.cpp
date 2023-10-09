@@ -57,6 +57,29 @@ template <typename Value> InterfaceSettings LoadInterfaceSettings(const Value &V
   return S;
 }
 
+template <typename Value>
+LandPropagationSettings LoadLandPropagationSettings(const Value &V) noexcept {
+  LandPropagationSettings S;
+  S.TownPropagationByLevel.push_back(0);
+  for (const auto &E : V["town"].GetArray()) {
+    S.TownPropagationByLevel.push_back(E.GetUint());
+  }
+  S.CapitalPropagation = V["capital"].GetUint();
+  S.RodPropagation = V["rod"].GetUint();
+  return S;
+}
+
+template <typename Value>
+VisibilityRangeSettings LoadVisibilityRangeSettings(const Value &V) noexcept {
+  VisibilityRangeSettings S;
+  S.TownVisibilityByLevel.push_back(0);
+  for (const auto &E : V["town"].GetArray()) {
+    S.TownVisibilityByLevel.push_back(E.GetUint());
+  }
+  S.CapitalVisibility = V["capital"].GetUint();
+  return S;
+}
+
 } // namespace
 
 Mod::Mod(Named Name) noexcept : Named{std::move(Name)} {}
@@ -81,6 +104,7 @@ public:
     M.CapitalSettings_ = LoadTownSettings<CapitalSettings>(Doc["capital_settings"]);
     M.GridSettings_ = LoadGridSettings(Doc["grid_settings"]);
     M.InterfaceSettings_ = LoadInterfaceSettings(Doc["interface_settings"]);
+    M.LandPropagationSettings_ = LoadLandPropagationSettings(Doc["land_propagation_settings"]);
 
     LoadBuildingPages(M, Doc["building_pages"]);
     LoadResources(M, Path / "resources");

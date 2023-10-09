@@ -1,5 +1,6 @@
 #pragma once
 
+#include "entities/components.h"
 #include "entities/fraction.h"
 #include "entities/global_map.h"
 #include "entities/lord.h"
@@ -46,6 +47,12 @@ public:
   const CapitalSettings &GetCapitalSettings() const noexcept { return CapitalSettings_; }
   const GridSettings &GetGridSettings() const noexcept { return GridSettings_; }
   const InterfaceSettings &GetInterfaceSettings() const noexcept { return InterfaceSettings_; }
+  const LandPropagationSettings &GetLandPropagationSettings() const noexcept {
+    return LandPropagationSettings_;
+  }
+  const VisibilityRangeSettings &GetVisibilityRangeSettings() const noexcept {
+    return VisibilityRangeSettings_;
+  }
 
 private:
   explicit Mod(Named Name) noexcept;
@@ -68,6 +75,8 @@ private:
 
   TownSettings TownSettings_;
   CapitalSettings CapitalSettings_;
+  LandPropagationSettings LandPropagationSettings_;
+  VisibilityRangeSettings VisibilityRangeSettings_;
   GridSettings GridSettings_;
   InterfaceSettings InterfaceSettings_;
 };

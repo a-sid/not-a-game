@@ -21,8 +21,8 @@ public:
   explicit Status(ErrorCode Code = ErrorCode::Success, const std::string &Message = {}) noexcept
       : Code_{Code}, Message_{Message} {}
   explicit Status(ErrorCode Code, std::string_view Message) : Code_{Code} { Message_ << Message; }
-  ErrorCode Code() { return Code_; }
-  std::string Message() { return Message_.str(); }
+  ErrorCode Code() const noexcept { return Code_; }
+  std::string Message() const noexcept { return Message_.str(); }
 
   bool IsSuccess() const noexcept { return Code_ == ErrorCode::Success; }
   bool IsError() const noexcept { return !IsSuccess(); }
@@ -59,9 +59,9 @@ public:
   ErrorOr &operator=(const ErrorOr &) noexcept = delete;
   ErrorOr &operator=(ErrorOr &&) noexcept = default;
 
-  ErrorCode Code() noexcept {
+  ErrorCode Code() const noexcept {
     const auto *S = std::get_if<Status>(&Storage_);
-    return S ? S->Code : ErrorCode::Success;
+    return S ? S->Code() : ErrorCode::Success;
   }
 
   const Status &GetError() noexcept {

@@ -34,7 +34,7 @@ signals:
   void MouseUp(QMouseEvent *event);
 };
 
-class GlobalMapWindow : public QMainWindow {
+class GlobalMapWindow : public QMainWindow, public NotAGame::EventListener {
   Q_OBJECT
 
 public:

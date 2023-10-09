@@ -6,7 +6,7 @@
 #include "util/types.h"
 
 namespace NotAGame {
-
+/*
 class Map {
 
 public:
@@ -15,5 +15,5 @@ private:
 
   SmallVector<PlayerState, kMaxPlayers> PlayerStates_;
 };
-
+*/
 } // namespace NotAGame
