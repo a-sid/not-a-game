@@ -22,33 +22,33 @@ class Mod;
 class Player;
 class Squad;
 
-struct Point {
-  Coord X;
-  Coord Y;
-};
-
 enum class TerrainKind { Ground, Water, Relief };
 
 enum class GroundKind { Plain, Road, Forest };
+enum class Passability { Passable, Impassable };
 
 class MapObject;
 using MapObjectPtr = std::unique_ptr<MapObject>;
 
 class MapObject : public Named {
 public:
-  enum Kind { Capital, Town, Rod, Shop, MagicShop, TrainingCamp, Resource, Ruins, Other };
+  enum Kind { Capital, Town, Grave, Rod, Shop, MagicShop, TrainingCamp, Resource, Ruins, Other };
 
-  MapObject(Named Name, Kind Kind, Dim Layer, Dim X, Dim Y, Size Width, Size Height,
-            std::optional<Coord> EntrancePos) noexcept
-      : Named{std::move(Name)}, Kind_{Kind}, Layer_{Layer}, X_{X}, Y_{Y}, Width_{Width},
-        Height_{Height}, EntrancePos_{EntrancePos} {}
+  MapObject(Named Name, Kind Kind, Coord3D Pos, Dims2D Size, std::optional<Coord> EntrancePos,
+            Passability Passability) noexcept
+      : Named{std::move(Name)}, Kind_{Kind}, Pos_{Pos}, Size_{Size}, EntrancePos_{EntrancePos},
+        Passability_{Passability} {}
 
   Kind GetKind() const noexcept { return Kind_; }
-  Dim GetLayer() const noexcept { return Layer_; }
-  Dim GetX() const noexcept { return X_; }
-  Dim GetY() const noexcept { return Y_; }
-  Size GetWidth() const noexcept { return Width_; }
-  Size GetHeight() const noexcept { return Height_; }
+  Coord3D GetPosition() const noexcept { return Pos_; }
+  Dim GetLayer() const noexcept { return Pos_.Layer; }
+  Dim GetX() const noexcept { return Pos_.X; }
+  Dim GetY() const noexcept { return Pos_.Y; }
+
+  Dims2D GetSize() const noexcept { return Size_; }
+  Size GetWidth() const noexcept { return Size_.Width; }
+  Size GetHeight() const noexcept { return Size_.Height; }
+
   std::optional<Coord> GetEntrancePos() const noexcept { return EntrancePos_; }
 
   template <typename T> const T &GetAs() const noexcept {
@@ -60,15 +60,21 @@ public:
     return (GetKind() == T::Class) ? static_cast<const T *>(this) : nullptr;
   }
 
+  Id<LandPropagation> GetLandPropagation() const noexcept { return LandPropagation_; }
+  Id<VisibilityRange> GetVisibilityRange() const noexcept { return VisibilityRange_; }
+
+  virtual void Register(const Mod &M, GameplaySystems &Systems) noexcept {}
+
 protected:
   Kind Kind_;
   Id<Animation> AnimationId_;
-  Dim Layer_;
-  Dim X_;
-  Dim Y_;
-  Size Width_;
-  Size Height_;
+  Coord3D Pos_;
+  Dims2D Size_;
   std::optional<Coord> EntrancePos_;
+  Id<LandPropagation> LandPropagation_;
+  Id<VisibilityRange> VisibilityRange_;
+  Id<ResourceSource> Source_;
+  Passability Passability_;
 };
 
 class Terrain : public Named {
@@ -86,9 +92,18 @@ struct BattleResult {
 };
 
 using BattleResults = std::vector<BattleResult>;
-class Grave {
+class Grave : public MapObject {
 public:
-  explicit Grave(BattleResult Result) { AddBattle(std::move(Result)); }
+  static constexpr Kind Class = Kind::Grave;
+  Grave(Coord3D Pos, BattleResult Result) noexcept
+      : MapObject{Named{"Grave", "Grave title", "Grave description"},
+                  Class,
+                  Pos,
+                  Dims2D{1, 1},
+                  std::nullopt,
+                  Passability::Passable} {
+    AddBattle(std::move(Result));
+  }
 
   void AddBattle(BattleResult Result) { BattleResults_.push_back(std::move(Result)); }
 
@@ -101,11 +116,14 @@ private:
 class Rod : public MapObject {
 public:
   static constexpr Kind Class = Kind::Rod;
-  Rod(const Mod &M, GameplaySystems &GameplaySystems, Dim Layer, Dim X, Dim Y,
-      Id<Player> PlayerId) noexcept;
+  Rod(const Mod &M, Coord3D Pos, Id<Player> PlayerId) noexcept;
+
+  void Register(const Mod &M, GameplaySystems &Systems) noexcept override {
+    LandPropagation_ = Systems.LandPropagation.AddComponent(LandPropagationComponent_);
+  }
 
 private:
-  Id<LandPropagation> LandPropagation_;
+  LandPropagation LandPropagationComponent_;
 };
 
 struct TownSettings {
@@ -124,17 +142,21 @@ class Town : public MapObject {
 public:
   static constexpr Kind Class = Kind::Town;
 
-  Town(const Mod &Mod, GameplaySystems &Systems, Named Name, Dim Layer, Dim X, Dim Y, Size Level,
-       PlayerId PlayerId) noexcept;
+  Town(const Mod &Mod, Named Name, Coord3D Pos, Size Level, PlayerId PlayerId) noexcept;
 
   PlayerId GetOwner() const noexcept { return Owner_; }
   void SetOwner(Id<Player> PlayerId) noexcept { Owner_ = PlayerId; }
   bool IsNeutral() const noexcept { return Owner_.IsInvalid(); }
 
+  void Register(const Mod &M, GameplaySystems &Systems) noexcept override {
+    LandPropagation_ = Systems.LandPropagation.AddComponent(LandPropagationComponent_);
+    VisibilityRange_ = Systems.Visibility.AddComponent(VisibilityRangeComponent_);
+  }
+
 protected:
   Size Level_;
-  Id<LandPropagation> LandPropagation_;
-  Id<VisibilityRange> VisibilityRange_;
+  LandPropagation LandPropagationComponent_;
+  VisibilityRange VisibilityRangeComponent_;
   Id<Squad> Guard_;
   std::optional<Id<Squad>> Squad_;
   Id<Player> Owner_;
@@ -144,15 +166,14 @@ class Capital : public MapObject {
 public:
   static constexpr Kind Class = Kind::Capital;
 
-  Capital(const Mod &Mod, GameplaySystems &Systems, Named Name, Dim Layer, Dim X, Dim Y,
-          PlayerId PlayerId, Id<Fraction> FractionId) noexcept;
+  Capital(const Mod &Mod, Named Name, Coord3D Pos, PlayerId PlayerId,
+          Id<Fraction> FractionId) noexcept;
 
   PlayerId GetOwner() const noexcept { return Owner_; }
 
 private:
-  Size Level_;
-  Id<LandPropagation> LandPropagation_;
-  Id<VisibilityRange> VisibilityRange_;
+  LandPropagation LandPropagationComponent_;
+  VisibilityRange VisibilityRangeComponent_;
   Id<Squad> Guard_;
   std::optional<Id<Squad>> Squad_;
   Id<Player> Owner_;
@@ -163,13 +184,14 @@ class Tile {
 public:
   explicit Tile(Id<Terrain> Terrain = NullId) noexcept : Terrain_{Terrain} {}
   Id<Terrain> Terrain_;
-  std::optional<Id<Player>> Owner_;
+  Id<Player> Owner_;
   std::optional<Grave> Grave_;
   Id<MapObjectPtr> Object_ = NullId;
   Id<Squad> Squad_ = NullId;
   // By default, all tiles are visible to the neutral player which has index 0.
   uint16_t VisibilityFlags = 1;
 
+  /*
   bool HasGrave() const noexcept { return Grave_.has_value(); }
   Grave &AddGrave(BattleResult Result) noexcept {
     if (!Grave_) {
@@ -178,7 +200,7 @@ public:
       Grave_->AddBattle(Result);
     }
     return *Grave_;
-  }
+  }*/
 };
 
 class GlobalMap {
@@ -192,6 +214,10 @@ public:
   Size GetWidth() const noexcept { return Width_; }
   Size GetHeight() const noexcept { return Height_; }
   Size GetNumLayers() const noexcept { return Layers_; }
+
+  Dims3D GetSize() const noexcept {
+    return Dims3D{.Width = Width_, .Height = Height_, .LayersCount = Layers_};
+  }
 
   Status AddObject(Dim Layer, Dim X, Dim Y, std::string Name, MapObjectPtr Object) noexcept {
     assert(Object->GetHeight() && Object->GetWidth());
@@ -228,7 +254,7 @@ public:
     for (Dim x = X; x < MaxX; ++x) {
       for (Dim y = Y; y < MaxY; ++y) {
         const auto &Tile = GetTile(Layer, x, y);
-        if (Tile.Object_.IsValid() || Tile.HasGrave()) {
+        if (Tile.Object_.IsValid()) {
           return false;
         }
       }
@@ -243,6 +269,9 @@ public:
     return Tiles_[Width_ * Height_ * Layer + Y * Width_ + X];
   }
 
+  auto GetObjects() noexcept { return MakeRange(MapObjects_.begin(), MapObjects_.end()); }
+  auto GetObjects() const noexcept { return MakeRange(MapObjects_.begin(), MapObjects_.end()); }
+
   const MapObject &GetObject(Id<MapObjectPtr> Id) const noexcept {
     return *MapObjects_.GetObjectById(Id);
   }
@@ -253,6 +282,10 @@ public:
 
   std::span<const Id<MapObjectPtr>> GetCapitals() const noexcept {
     return {&*Capitals_.begin(), Capitals_.size()};
+  }
+
+  std::span<const Id<MapObjectPtr>> GetTowns() const noexcept {
+    return {&*Towns_.begin(), Towns_.size()};
   }
 
   Size GetNumCapitals() const noexcept { return Capitals_.size(); }
@@ -269,19 +302,19 @@ private:
 
   Utils::Registry<MapObjectPtr> MapObjects_;
   std::vector<std::vector<Id<MapObjectPtr>>> ObjectsByLayer_;
-  Utils::Registry<Town> Towns_;
 
   SmallVector<Id<MapObjectPtr>, 8> Capitals_;
+  SmallVector<Id<MapObjectPtr>, 32> Towns_;
 };
 
 class Path {
 public:
-  using Storage = std::vector<Point>;
+  using Storage = std::vector<Coord3D>;
 
   Path() noexcept = default;
 
   const Storage &GetPoints() const noexcept { return Points_; }
-  void AddPoint(Point Pt) noexcept { Points_.push_back(Pt); }
+  void AddPoint(Coord3D Pt) noexcept { Points_.push_back(Pt); }
 
 private:
   Storage Points_;

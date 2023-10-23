@@ -76,6 +76,15 @@ public:
   const size_t size() const noexcept { return Objects_.size(); }
   const size_t empty() const noexcept { return Objects_.empty(); }
 
+  using iterator = typename PagedVector<T, N>::iterator;
+  using const_iterator = typename PagedVector<T, N>::const_iterator;
+
+  iterator begin() noexcept { return Storage_.begin(); }
+  iterator end() noexcept { return Storage_.end(); }
+
+  const_iterator begin() const noexcept { return Storage_.begin(); }
+  const_iterator end() const noexcept { return Storage_.end(); }
+
 private:
   PagedVector<T, N> Storage_;
   std::unordered_map<Key, Id<T>> Objects_;

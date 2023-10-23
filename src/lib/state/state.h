@@ -65,12 +65,14 @@ struct SpellBook {
 
 class PlayerGameState {
 public:
-  PlayerGameState(GlobalMap &Map, std::vector<bool> TileVisibility) noexcept;
+  PlayerGameState(PlayerId PlayerId, const Mod &M, GameplaySystems &Systems,
+                  GlobalMap &Map) noexcept;
 
-  static PlayerGameState MakeInitialState(GlobalMap &Map) noexcept;
+  // static PlayerGameState MakeInitialState(GameplaySystems &Systems, GlobalMap &Map) noexcept;
 
 private:
   GlobalMap &GlobalMap_;
+  Resources Resources_;
   PlayerId Player_;
   std::vector<bool> TileVisibility_;
   std::unordered_set<Id<MapObjectPtr>> Towns_;
@@ -81,7 +83,7 @@ private:
 
 class OnlineGameState {
 public:
-  OnlineGameState(GlobalMap &Map) noexcept;
+  OnlineGameState(Mod &M, GlobalMap &Map, Players Players) noexcept;
 
 private:
   std::unordered_map<Size, Id<Player>> MapIndexToPlayer_;
@@ -95,6 +97,7 @@ private:
 
   Players Players_;
   Players::iterator CurrentPlayer_;
+  GameplaySystems GameplaySystems_;
 
   Size Turn_ = 0;
 };

@@ -11,6 +11,40 @@ template <typename T, size_t N> class PagedVector {
 public:
   static_assert(N != 0);
 
+  template <typename ParentT> class Iterator {
+  public:
+    explicit Iterator(ParentT *Parent = nullptr, size_t Idx = 0) noexcept
+        : Parent_{Parent}, Idx_{Idx} {}
+
+    Iterator &operator=(const Iterator &Rhs) noexcept = default;
+    auto operator<=>(const Iterator &Rhs) const noexcept = default;
+
+    Iterator &operator++() noexcept {
+      ++Idx_;
+      return *this;
+    }
+
+    Iterator operator++(int) noexcept {
+      auto Iter = *this;
+      ++(*this);
+      return Iter;
+    }
+
+    const T &operator*() const noexcept {
+      assert(Parent_);
+      return (*Parent_)[Idx_];
+    }
+
+    T &operator*() noexcept {
+      assert(Parent_);
+      return (*Parent_)[Idx_];
+    }
+
+  private:
+    ParentT *Parent_ = nullptr;
+    size_t Idx_ = 0;
+  };
+
   explicit PagedVector(size_t NumPages = 1) noexcept {
     NumPages = std::max(NumPages, size_t{1});
     for (size_t I = 0; I < NumPages; ++I) {
@@ -56,6 +90,15 @@ public:
   const size_t size() const noexcept { return LastPageIdx_ * N + Storage_[LastPageIdx_].size(); }
   const size_t capacity() const noexcept { return Storage_.size() * N; }
   const size_t empty() const noexcept { return size() == 0; }
+
+  using iterator = Iterator<PagedVector>;
+  using const_iterator = Iterator<const PagedVector>;
+
+  iterator begin() noexcept { return iterator{this, 0}; }
+  iterator end() noexcept { return iterator{this, size()}; }
+
+  const_iterator begin() const noexcept { return const_iterator{this, 0}; }
+  const_iterator end() const noexcept { return const_iterator{this, size()}; }
 
 private:
   using Page = std::vector<T>;

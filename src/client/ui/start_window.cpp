@@ -32,10 +32,9 @@ NotAGame::GlobalMap StartWindow::CreateMap() noexcept {
     }
   }
 
-  GameplaySystems Systems{.LandPropagation{LandPropagationSystem{2}},
-                          .Visibility{2, Dims3D{1, 16, 16}}};
+  GameplaySystems Systems{Mod_.GetResources(), 2, Dims3D{16, 16, 1}};
   auto Cap =
-      std::make_unique<Capital>(Mod_, Systems, Named{"1st_capital", "Capital", "capitol"}, 0, 1, 1,
+      std::make_unique<Capital>(Mod_, Named{"1st_capital", "Capital", "capitol"}, Coord3D{1, 1, 0},
                                 /* PlayerId = */ 0, Mod_.GetFractions().GetId("mountain_clans"));
   M.AddObject(0, 1, 1, "1st_capital", std::move(Cap));
 

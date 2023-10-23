@@ -145,7 +145,43 @@ Status PrepareGameState::PlayerTurnOrderLater(LobbyPlayerId LobbyPlayerId) noexc
 
   return Status::Success();
 }
+/*
+PlayerGameState PlayerGameState::MakeInitialState(GameplaySystems &Systems,
+                                                  GlobalMap &Map) noexcept {
+    for (const auto& Object : Map.GetTowns()) {
+        if ()
 
-OnlineGameState::OnlineGameState(GlobalMap &Map) noexcept : GlobalMap_{Map} {}
+    }
+}*/
+
+PlayerGameState::PlayerGameState(PlayerId PlayerId, const Mod &M, GameplaySystems &Systems,
+                                 GlobalMap &Map) noexcept
+    : GlobalMap_{Map}, Resources_{M.GetResources()} {
+  /*Systems.Visibility.Reset(PlayerId);
+    for (Dim Layer = 0, LE = Map.GetNumLayers(); Layer < LE; ++Layer) {
+        for (Dim Layer = 0, LE = Map.GetNumLayers(); Layer < LE; ++Layer) {
+
+    }
+  for (Dim x = X; x < MaxX; ++x) {
+    for (Dim y = Y; y < MaxY; ++y) {
+      Systems.LandPropagation.GetTile(Layer, x, y).Object_ = Id;
+    }
+  }*/
+}
+
+OnlineGameState::OnlineGameState(Mod &M, GlobalMap &Map, Players Players) noexcept
+    : GlobalMap_{Map}, Players_{std::move(Players)},
+      GameplaySystems_{M.GetResources(), static_cast<Size>(Players_.size()), Map.GetSize()} {
+  for (const auto &Obj : Map.GetObjects()) {
+    Obj->Register(M, GameplaySystems_);
+  }
+  /* for (Dim Layer = 0, Layers = Map.GetNumLayers(); Layer < Layers; ++Layer) {
+     for (Dim X = 0, W = Map.GetWidth(); X < W; ++X) {
+       for (Dim Y = 0, H = Map.GetHeight(); Y < H; ++Y) {
+         GameplaySystems_.LandPropagation.SetOwner(X, Y, Layer, PlayerId);
+       }
+     }
+   }*/
+}
 
 } // namespace NotAGame

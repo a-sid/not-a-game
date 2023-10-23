@@ -3,57 +3,54 @@
 
 namespace NotAGame {
 
-Town::Town(const Mod &Mod, GameplaySystems &Systems, Named Name, Dim Layer, Dim X, Dim Y,
-           Size Level, PlayerId PlayerId) noexcept
+Town::Town(const Mod &Mod, Named Name, Coord3D Pos, Size Level, PlayerId PlayerId) noexcept
     : MapObject{std::move(Name),
                 Class,
-                Layer,
-                X,
-                Y,
-                Mod.GetTownSettings().Width,
-                Mod.GetTownSettings().Height,
-                Mod.GetTownSettings().EntrancePos},
-      Level_{Level}, LandPropagation_{Systems.LandPropagation.AddComponent(LandPropagation{
-                         .TilesPerTurn =
-                             Mod.GetLandPropagationSettings().TownPropagationByLevel[Level],
-                         .Origin = {.X = X, .Y = Y},
-                         .OriginSize = {.Width = Mod.GetTownSettings().Width,
-                                        .Height = Mod.GetTownSettings().Height}})},
-      VisibilityRange_{Systems.Visibility.AddComponent(VisibilityRange{
+                Pos,
+                Dims2D{Mod.GetTownSettings().Width, Mod.GetTownSettings().Height},
+                Mod.GetTownSettings().EntrancePos,
+                Passability::Impassable},
+      Level_{Level},
+      LandPropagationComponent_{.TilesPerTurn =
+                                    Mod.GetLandPropagationSettings().TownPropagationByLevel[Level],
+                                .Origin = Pos,
+                                .OriginSize = {.Width = Mod.GetTownSettings().Width,
+                                               .Height = Mod.GetTownSettings().Height}},
+      VisibilityRangeComponent_{
           .Player = PlayerId,
-          .Origin = {.X = X, .Y = Y, .Layer = Layer},
+          .Origin = Pos,
           .OriginSize{.Width = Mod.GetTownSettings().Width, .Height = Mod.GetTownSettings().Height},
-          .Radius = Mod.GetVisibilityRangeSettings().TownVisibilityByLevel[Level]})} {}
+          .Radius = Mod.GetVisibilityRangeSettings().TownVisibilityByLevel[Level]} {}
 
-Capital::Capital(const Mod &Mod, GameplaySystems &Systems, Named Name, Dim Layer, Dim X, Dim Y,
-                 PlayerId PlayerId, Id<Fraction> FractionId) noexcept
+Capital::Capital(const Mod &Mod, Named Name, Coord3D Pos, PlayerId PlayerId,
+                 Id<Fraction> FractionId) noexcept
     : MapObject{std::move(Name),
                 Class,
-                Layer,
-                X,
-                Y,
-                Mod.GetCapitalSettings().Width,
-                Mod.GetCapitalSettings().Height,
-                Mod.GetCapitalSettings().EntrancePos},
-      LandPropagation_{Systems.LandPropagation.AddComponent(LandPropagation{
+                Pos,
+                Dims2D{Mod.GetCapitalSettings().Width, Mod.GetCapitalSettings().Height},
+                Mod.GetCapitalSettings().EntrancePos,
+                Passability::Impassable},
+      LandPropagationComponent_{
           .Player = PlayerId,
           .TilesPerTurn = Mod.GetLandPropagationSettings().CapitalPropagation,
-          .Origin = {.X = X, .Y = Y},
-          .OriginSize = {Mod.GetCapitalSettings().Width, Mod.GetCapitalSettings().Height}})},
-      VisibilityRange_{Systems.Visibility.AddComponent(
-          VisibilityRange{.Player = PlayerId,
-                          .Origin = {.X = X, .Y = Y, .Layer = Layer},
-                          .OriginSize{.Width = Mod.GetCapitalSettings().Width,
-                                      .Height = Mod.GetCapitalSettings().Height},
-                          .Radius = Mod.GetVisibilityRangeSettings().CapitalVisibility})} {}
+          .Origin = Pos,
+          .OriginSize = {Mod.GetCapitalSettings().Width, Mod.GetCapitalSettings().Height}},
+      VisibilityRangeComponent_{.Player = PlayerId,
+                                .Origin = Pos,
+                                .OriginSize{.Width = Mod.GetCapitalSettings().Width,
+                                            .Height = Mod.GetCapitalSettings().Height},
+                                .Radius = Mod.GetVisibilityRangeSettings().CapitalVisibility} {}
 
-Rod::Rod(const Mod &M, GameplaySystems &GameplaySystems, Dim Layer, Dim X, Dim Y,
-         Id<Player> PlayerId) noexcept
-    : MapObject{Named{"Rod", "Rod", "Rod"}, Class, Layer, X, Y, 1, 1, std::nullopt},
-      LandPropagation_{GameplaySystems.LandPropagation.AddComponent(
-          LandPropagation{.Player = PlayerId,
-                          .TilesPerTurn = M.GetLandPropagationSettings().RodPropagation,
-                          .Origin = {X, Y},
-                          .OriginSize = {1, 1}})} {}
+Rod::Rod(const Mod &M, Coord3D Pos, Id<Player> PlayerId) noexcept
+    : MapObject{Named{"Rod", "Rod title", "Rod description"},
+                Class,
+                Pos,
+                Dims2D{1, 1},
+                std::nullopt,
+                Passability::Impassable},
+      LandPropagationComponent_{.Player = PlayerId,
+                                .TilesPerTurn = M.GetLandPropagationSettings().RodPropagation,
+                                .Origin = Pos,
+                                .OriginSize = {1, 1}} {}
 
 } // namespace NotAGame
