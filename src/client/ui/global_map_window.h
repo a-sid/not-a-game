@@ -4,9 +4,11 @@
 #include "engine/player.h"
 #include "entities/global_map.h"
 #include "game/mod.h"
+#include "resources_widget.h"
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QLabel>
 #include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
@@ -38,9 +40,11 @@ class GlobalMapWindow : public QMainWindow, public NotAGame::EventListener {
   Q_OBJECT
 
 public:
-  GlobalMapWindow(NotAGame::Mod &Mod, NotAGame::GlobalMap &GlobalMap, NotAGame::Engine &Engine,
+  GlobalMapWindow(NotAGame::Mod &Mod, NotAGame::OnlineGameState &State, NotAGame::Engine &Engine,
                   NotAGame::Player &Player, QWidget *Parent = nullptr) noexcept;
   ~GlobalMapWindow() noexcept;
+
+  void OnPlayerNewTurn(const NotAGame::NewTurnEvent &Event) noexcept override;
 
 public slots:
   void OnMapMouseMove(QMouseEvent *ev);
@@ -62,13 +66,15 @@ private:
   void DrawTile(QPainter &Painter, int X, int Y) noexcept;
   void DrawObject(QPainter &Painter, const NotAGame::MapObject &Object) noexcept;
 
-  void HandleObjectClick(QPoint MapCoord, NotAGame::Id<NotAGame::MapObjectPtr> Object) noexcept;
+  void HandleObjectClick(QPoint MapCoord, NotAGame::Id<NotAGame::MapObject> Object) noexcept;
 
   std::optional<QPoint> GetMapCoord(QPoint MousePos) const noexcept;
 
   Ui::GlobalMapWindow *UI_;
   QGraphicsScene Scene_;
+  ResourcesWidget *Resources_;
   NotAGame::Mod &Mod_;
+  NotAGame::OnlineGameState &State_;
   NotAGame::GlobalMap &GlobalMap_;
   NotAGame::Engine &Engine_;
   NotAGame::Player &Player_;

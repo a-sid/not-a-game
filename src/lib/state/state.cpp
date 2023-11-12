@@ -6,20 +6,20 @@
 
 namespace NotAGame {
 
-ErrorOr<LobbyPlayerId> PrepareGameState::PlayerConnect(PlayerSource PlayerSource) noexcept {
+ErrorOr<LobbyPlayerId> PrepareGameState::PlayerConnect(PlayerKind PlayerKind) noexcept {
   if (Players_.size() == PlayersCount_) {
     return Status::Error(ErrorCode::LobbyFull, "Lobby is full");
   }
 
   LobbyPlayerId Id = LobbyPlayerIdCounter_++;
-  Players_.emplace(Id, Player{.LobbyId = Id, .Source = PlayerSource});
+  Players_.emplace(Id, Player{.LobbyId = Id, .Source = PlayerKind});
   TurnOrder_.push_back(Id);
   return Id;
 }
 
 LobbyPlayerId PrepareGameState::NeutralPlayerConnect() noexcept {
   LobbyPlayerId Id = LobbyPlayerIdCounter_++;
-  Players_.emplace(Id, Player{.LobbyId = Id, .Source = PlayerSource::AI});
+  Players_.emplace(Id, Player{.LobbyId = Id, .Source = PlayerKind::AI});
   TurnOrder_.push_back(Id);
   return Id;
 }
@@ -145,6 +145,14 @@ Status PrepareGameState::PlayerTurnOrderLater(LobbyPlayerId LobbyPlayerId) noexc
 
   return Status::Success();
 }
+
+PlayersList PrepareGameState::CreatePlayers() const noexcept {
+  PlayersList Result;
+  for (auto Id : TurnOrder_) {
+    Result.push_back(Players_.at(Id));
+  }
+  return Result;
+}
 /*
 PlayerGameState PlayerGameState::MakeInitialState(GameplaySystems &Systems,
                                                   GlobalMap &Map) noexcept {
@@ -154,9 +162,8 @@ PlayerGameState PlayerGameState::MakeInitialState(GameplaySystems &Systems,
     }
 }*/
 
-PlayerGameState::PlayerGameState(PlayerId PlayerId, const Mod &M, GameplaySystems &Systems,
-                                 GlobalMap &Map) noexcept
-    : GlobalMap_{Map}, Resources_{M.GetResources()} {
+PlayerGameState::PlayerGameState(PlayerId PlayerId, const Mod &M, MapState &Map) noexcept
+    : Player{PlayerId}, M{M}, Map{Map}, ResourcesGained{M.GetResources()} {
   /*Systems.Visibility.Reset(PlayerId);
     for (Dim Layer = 0, LE = Map.GetNumLayers(); Layer < LE; ++Layer) {
         for (Dim Layer = 0, LE = Map.GetNumLayers(); Layer < LE; ++Layer) {
@@ -169,12 +176,11 @@ PlayerGameState::PlayerGameState(PlayerId PlayerId, const Mod &M, GameplaySystem
   }*/
 }
 
-OnlineGameState::OnlineGameState(Mod &M, GlobalMap &Map, Players Players) noexcept
-    : GlobalMap_{Map}, Players_{std::move(Players)},
-      GameplaySystems_{M.GetResources(), static_cast<Size>(Players_.size()), Map.GetSize()} {
-  for (const auto &Obj : Map.GetObjects()) {
-    Obj->Register(M, GameplaySystems_);
-  }
+OnlineGameState::OnlineGameState(Mod &M, MapState &Map, PlayersList Players) noexcept
+    : SavedState{M, Map, static_cast<Size>(Players.size())}, Players{std::move(Players)} {
+  /*for (auto &Obj : Map.GetObjects()) {
+    Obj.Register(M, GameplaySystems_);
+  }*/
   /* for (Dim Layer = 0, Layers = Map.GetNumLayers(); Layer < Layers; ++Layer) {
      for (Dim X = 0, W = Map.GetWidth(); X < W; ++X) {
        for (Dim Y = 0, H = Map.GetHeight(); Y < H; ++Y) {

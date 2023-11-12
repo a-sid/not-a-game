@@ -1,6 +1,7 @@
 #include "global_map_window.h"
 #include "./ui_global_map_window.h"
 #include "capital_view_window.h"
+#include "new_turn_dialog.h"
 
 #include <cmath>
 #include <fmt/format.h>
@@ -23,16 +24,20 @@ constexpr int kBorderWidth = 200;
 
 } // namespace
 
-GlobalMapWindow::GlobalMapWindow(Mod &Mod, GlobalMap &GlobalMap, Engine &Engine, Player &Player,
+GlobalMapWindow::GlobalMapWindow(Mod &Mod, OnlineGameState &State, Engine &Engine, Player &Player,
                                  QWidget *Parent) noexcept
-    : QMainWindow{Parent}, UI_{new Ui::GlobalMapWindow}, Mod_{Mod},
-      GlobalMap_{GlobalMap}, Engine_{Engine}, Player_{Player} {
+    : QMainWindow{Parent}, UI_{new Ui::GlobalMapWindow}, Mod_{Mod}, State_{State},
+      GlobalMap_{State.SavedState.Map.GlobalMap}, Engine_{Engine}, Player_{Player} {
   UI_->setupUi(this);
 
   UI_->GlobalMapView->setRenderHint(QPainter::Antialiasing);
   const auto W = GlobalMap_.GetWidth(), H = GlobalMap_.GetHeight();
   MapPixmap_ = QPixmap{static_cast<int>((W + H) * kDX + kBorderWidth * 2),
                        static_cast<int>((W + H) * kDY) + kBorderWidth * 2};
+
+  Resources_ = new ResourcesWidget{Mod_, this};
+  Resources_->setMinimumSize(Resources_->sizeHint());
+  UI_->statusbar->addPermanentWidget(Resources_);
 
   connect(UI_->GlobalMapView, &MapView::MouseMove, this, &GlobalMapWindow::OnMapMouseMove);
   connect(UI_->GlobalMapView, &MapView::MouseDown, this, &GlobalMapWindow::OnMapMouseDown);
@@ -151,11 +156,19 @@ void GlobalMapWindow::OnMapMouseMove(QMouseEvent *Event) {
 
   Scene_.addEllipse(Left, Top, 2 * Coef * kDX, 2 * Coef * kDY, QPen{Qt::blue});
 
-  const auto Terrain =
-      Mod_.GetTerrains().GetObjectById(GlobalMap_.GetTile(CurrentLayer_, MapX, MapY).Terrain_);
-  UI_->statusbar->showMessage(
-      QString::fromStdString(fmt::format("{}, {}     {}, {}  {}  {}", MapViewX, MapViewY, MapX,
-                                         MapY, Terrain.GetName(), Terrain.GetDescription())));
+  const auto &Tile = GlobalMap_.GetTile(CurrentLayer_, MapX, MapY);
+  const std::string *Name = nullptr;
+  const std::string *Description = nullptr;
+  if (Tile.Object_.IsValid()) {
+    Name = &GlobalMap_.GetObject(Tile.Object_).GetTitle();
+    Description = &GlobalMap_.GetObject(Tile.Object_).GetDescription();
+  } else {
+    const auto &Terrain = Mod_.GetTerrains().GetObjectById(Tile.Terrain_);
+    Name = &Terrain.GetName();
+    Description = &Terrain.GetDescription();
+  }
+  UI_->statusbar->showMessage(QString::fromStdString(fmt::format(
+      "{}, {}     {}, {}  {}  {}", MapViewX, MapViewY, MapX, MapY, *Name, *Description)));
 }
 
 void GlobalMapWindow::OnMapMouseDown(QMouseEvent *Event) {
@@ -179,7 +192,7 @@ void GlobalMapWindow::OnMapMouseUp(QMouseEvent *Event) {
   MapMouseState_.IsMouseDown = false;
 }
 
-void GlobalMapWindow::HandleObjectClick(QPoint MapCoord, Id<MapObjectPtr> ObjectId) noexcept {
+void GlobalMapWindow::HandleObjectClick(QPoint MapCoord, Id<MapObject> ObjectId) noexcept {
   const auto &Obj = GlobalMap_.GetObject(ObjectId);
   if (const auto Entrance = Obj.GetEntrancePos()) {
     if (MapCoord.x() == Obj.GetX() + Entrance->X && MapCoord.y() == Obj.GetY() + Entrance->Y) {
@@ -198,6 +211,17 @@ void GlobalMapWindow::HandleObjectClick(QPoint MapCoord, Id<MapObjectPtr> Object
 void GlobalMapWindow::OpenCapitalScreen() {
   auto W = new CapitalViewWindow{Mod_.GetInterfaceSettings(), Mod_.GetGridSettings(), this};
   W->show();
+}
+
+void GlobalMapWindow::OnPlayerNewTurn(const NotAGame::NewTurnEvent &Event) noexcept {
+  if (Event.Player == 0) { // FIXME: pass player id from start window
+    Resources_->SetValue(State_.SavedState.PlayerStates[0].ResourcesGained);
+    NewTurnDialog dlg{Mod_, this};
+    dlg.SetCaption(QString::fromStdString(fmt::format("Начинается {} день", Event.TurnNo)));
+    assert(Event.Income);
+    dlg.SetResources(*Event.Income);
+    dlg.exec();
+  }
 }
 
 void MapView::mouseMoveEvent(QMouseEvent *event) {

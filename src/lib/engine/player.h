@@ -48,7 +48,7 @@ inline Color ColorByTurnOrder(Size TurnOrder) noexcept {
 
 enum class PlayerConnectionState { NotReady, Ready, Online, Offline };
 
-enum class PlayerSource { Human, AI };
+enum class PlayerKind { Human, AI };
 
 using PlayerId = Id<Player>;
 using LobbyPlayerId = Size;
@@ -56,7 +56,7 @@ using LobbyPlayerId = Size;
 struct Player {
   PlayerId MapId;
   LobbyPlayerId LobbyId;
-  PlayerSource Source = PlayerSource::AI;
+  PlayerKind Source = PlayerKind::AI;
   std::string Name;
   Id<Fraction> FractionId;
   Id<Lord> LordId;

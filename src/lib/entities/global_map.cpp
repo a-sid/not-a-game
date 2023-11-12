@@ -2,7 +2,7 @@
 #include "game/mod.h"
 
 namespace NotAGame {
-
+/*
 Town::Town(const Mod &Mod, Named Name, Coord3D Pos, Size Level, PlayerId PlayerId) noexcept
     : MapObject{std::move(Name),
                 Class,
@@ -39,7 +39,8 @@ Capital::Capital(const Mod &Mod, Named Name, Coord3D Pos, PlayerId PlayerId,
                                 .Origin = Pos,
                                 .OriginSize{.Width = Mod.GetCapitalSettings().Width,
                                             .Height = Mod.GetCapitalSettings().Height},
-                                .Radius = Mod.GetVisibilityRangeSettings().CapitalVisibility} {}
+                                .Radius = Mod.GetVisibilityRangeSettings().CapitalVisibility},
+      ResourceIncome_{Mod.GetDailyIncomes().Capital} {}
 
 Rod::Rod(const Mod &M, Coord3D Pos, Id<Player> PlayerId) noexcept
     : MapObject{Named{"Rod", "Rod title", "Rod description"},
@@ -52,5 +53,5 @@ Rod::Rod(const Mod &M, Coord3D Pos, Id<Player> PlayerId) noexcept
                                 .TilesPerTurn = M.GetLandPropagationSettings().RodPropagation,
                                 .Origin = Pos,
                                 .OriginSize = {1, 1}} {}
-
+*/
 } // namespace NotAGame

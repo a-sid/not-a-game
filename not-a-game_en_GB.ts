@@ -93,6 +93,24 @@
     </message>
 </context>
 <context>
+    <name>NewTurnDialog</name>
+    <message>
+        <location filename="src/client/ui/new_turn_dialog.ui" line="20"/>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/new_turn_dialog.ui" line="36"/>
+        <source>День 0</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/new_turn_dialog.ui" line="59"/>
+        <source>Ваш доход:</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>PlayerSetupDialog</name>
     <message>
         <location filename="src/client/ui/player_setup_dialog.ui" line="20"/>

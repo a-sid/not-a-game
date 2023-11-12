@@ -162,7 +162,7 @@ private:
     return true;
   }
 
-  boost::container::small_vector<Amount, 8> Values_;
+  NotAGame::SmallVector<Amount, kExpectedResourceCount> Values_;
   const ResourceRegistry &Registry_;
 };
 

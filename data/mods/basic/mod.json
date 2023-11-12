@@ -115,22 +115,6 @@
       }
     }
   ],
-  "capital_settings": {
-    "width": 5,
-    "height": 5,
-    "entrance_pos": {
-      "x": 4,
-      "y": 4
-    }
-  },
-  "town_settings": {
-    "width": 4,
-    "height": 4,
-    "entrance_pos": {
-      "x": 3,
-      "y": 3
-    }
-  },
   "land_propagation_settings": {
     "town": [1, 2, 3, 4, 5],
     "capital": 6,

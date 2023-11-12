@@ -2,12 +2,14 @@
 
 #include <QMainWindow>
 
-#include "entities/global_map.h"
+#include "entities/components.h"
 #include "game/mod.h"
+#include "state/state.h"
 
 namespace Ui {
 class StartWindow;
 }
+
 class StartWindow : public QMainWindow {
   Q_OBJECT
 
@@ -20,10 +22,10 @@ private slots:
 
 private:
   NotAGame::Mod LoadMod() noexcept;
-  NotAGame::GlobalMap CreateMap() noexcept;
+  NotAGame::MapState CreateMap() noexcept;
 
   Ui::StartWindow *UI_;
 
   NotAGame::Mod Mod_;
-  NotAGame::GlobalMap GlobalMap_;
+  NotAGame::MapState Map_;
 };

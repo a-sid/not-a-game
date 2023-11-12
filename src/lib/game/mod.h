@@ -43,10 +43,9 @@ public:
   const auto &GetFractions() const noexcept { return Fractions_; }
   const auto &GetLords() const noexcept { return Lords_; }
 
-  const TownSettings &GetTownSettings() const noexcept { return TownSettings_; }
-  const CapitalSettings &GetCapitalSettings() const noexcept { return CapitalSettings_; }
   const GridSettings &GetGridSettings() const noexcept { return GridSettings_; }
   const InterfaceSettings &GetInterfaceSettings() const noexcept { return InterfaceSettings_; }
+
   const LandPropagationSettings &GetLandPropagationSettings() const noexcept {
     return LandPropagationSettings_;
   }
@@ -73,8 +72,6 @@ private:
   Utils::Registry<Lord, 8> Lords_;
   Utils::Registry<BuildingPage, 8> BuildingPages_;
 
-  TownSettings TownSettings_;
-  CapitalSettings CapitalSettings_;
   LandPropagationSettings LandPropagationSettings_;
   VisibilityRangeSettings VisibilityRangeSettings_;
   GridSettings GridSettings_;

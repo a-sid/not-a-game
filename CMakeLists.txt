@@ -75,6 +75,7 @@ add_library(entities STATIC
   src/lib/entities/global_map.cpp
   src/lib/entities/global_map.h
   src/lib/entities/item.h
+  src/lib/entities/inventory.h
   src/lib/entities/lord.h
   src/lib/entities/spell.h
   src/lib/entities/squad.h
@@ -112,9 +113,14 @@ add_executable(not-a-game
   src/client/ui/global_map_window.h
   src/client/ui/global_map_window.cpp
   src/client/ui/global_map_window.ui
+  src/client/ui/new_turn_dialog.cpp
+  src/client/ui/new_turn_dialog.h
+  src/client/ui/new_turn_dialog.ui
   src/client/ui/player_setup_dialog.cpp
   src/client/ui/player_setup_dialog.h
   src/client/ui/player_setup_dialog.ui
+  src/client/ui/resources_widget.cpp
+  src/client/ui/resources_widget.h
   src/client/ui/start_window.cpp
   src/client/ui/start_window.h
   src/client/ui/start_window.ui

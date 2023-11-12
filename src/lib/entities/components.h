@@ -120,7 +120,7 @@ public:
     return Propagate(Map, Component);
   }
 
-  void Propagate(GlobalMap &Map, PlayerId Player) noexcept {}
+  std::vector<Coord3D> Propagate(GlobalMap &Map, PlayerId Player) noexcept { return {}; } // FIXME
   PropagationResult Propagate(GlobalMap &Map, const LandPropagation &Component) noexcept;
 };
 
@@ -222,6 +222,7 @@ private:
 };
 
 struct ResourceSource {
+  Id<ResourceSource> ComponentId;
   Resources Income;
   PlayerId Player;
 };

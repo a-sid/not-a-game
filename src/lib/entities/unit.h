@@ -2,6 +2,7 @@
 
 #include "entities/common.h"
 #include "entities/effect.h"
+#include "entities/inventory.h"
 #include "entities/resource.h"
 #include "util/id.h"
 #include "util/registry.h"
@@ -16,7 +17,6 @@ namespace NotAGame {
 class Icon;
 
 class Unit;
-class Item;
 
 struct AttackSource {
   std::string Description;
@@ -137,11 +137,6 @@ struct UnitDescriptor : public Named {
   Resources HireCost;
   Resources ResurrectCost;
   Resources HealPerHPCost;
-};
-
-class Inventory {
-
-  std::unordered_map<Id<Item>, Size> Items_;
 };
 
 class LeaderData {

@@ -80,6 +80,21 @@ VisibilityRangeSettings LoadVisibilityRangeSettings(const Value &V) noexcept {
   return S;
 }
 
+template <typename Value>
+Resources ParseResources(const ResourceRegistry &Registry, const Value &Doc) noexcept {
+  const auto &Map = Doc.GetObject();
+  Resources R{Registry};
+  for (const auto &Member : Map) {
+    const auto Id = Registry.GetId(GetString(Member.name));
+    R.SetAmountById(Id, Member.value.GetInt());
+  }
+  return R;
+}
+
+template <typename Value> Resources ParseResources(const Mod &M, const Value &Doc) noexcept {
+  return ParseResources(M.GetResources(), Doc);
+}
+
 } // namespace
 
 Mod::Mod(Named Name) noexcept : Named{std::move(Name)} {}
@@ -100,8 +115,6 @@ public:
       M.Terrains_.AddObject(std::move(Name), std::move(T));
     }
 
-    M.TownSettings_ = LoadTownSettings<TownSettings>(Doc["town_settings"]);
-    M.CapitalSettings_ = LoadTownSettings<CapitalSettings>(Doc["capital_settings"]);
     M.GridSettings_ = LoadGridSettings(Doc["grid_settings"]);
     M.InterfaceSettings_ = LoadInterfaceSettings(Doc["interface_settings"]);
     M.LandPropagationSettings_ = LoadLandPropagationSettings(Doc["land_propagation_settings"]);
@@ -136,18 +149,6 @@ private:
 
   static void LoadUnits(Mod &M, const std::filesystem::path &Path) noexcept {
     LoadDirectory(M, Path, "unit.json", LoadUnitDescriptor);
-  }
-
-  template <typename Value>
-  static Resources ParseResources(const Mod &M, const Value &Doc) noexcept {
-    const auto &Map = Doc.GetObject();
-    const auto &Registry = M.GetResources();
-    Resources R{Registry};
-    for (const auto &Member : Map) {
-      const auto Id = Registry.GetId(GetString(Member.name));
-      R.SetAmountById(Id, Member.value.GetInt());
-    }
-    return R;
   }
 
   template <typename Value> static void LoadBuildingPages(Mod &M, const Value &V) noexcept {

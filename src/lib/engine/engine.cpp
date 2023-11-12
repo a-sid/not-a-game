@@ -2,7 +2,8 @@
 
 namespace NotAGame {
 
-Engine::Engine(Mod &M, GlobalMap &Map) noexcept : State_{PrepareGameState{M, Map}} {}
+Engine::Engine(Mod &M, MapState &MapState) noexcept
+    : Mod_{M}, MapState_{MapState}, State_{PrepareGameState{M, MapState.GlobalMap}} {}
 
 template <typename State, typename Fn>
 auto Engine::CheckStateAndCall(Fn &&Func, const char *FnName) noexcept
@@ -23,9 +24,9 @@ auto Engine::EnsureStateAndCall(Fn &&Func, const char *FnName) noexcept
   return Func(SubState);
 }
 
-ErrorOr<LobbyPlayerId> Engine::PlayerConnect(PlayerSource PlayerSource) noexcept {
+ErrorOr<LobbyPlayerId> Engine::PlayerConnect(PlayerKind PlayerKind) noexcept {
   return CheckStateAndCall<PrepareGameState>(
-      [&](auto *State) { return State->PlayerConnect(PlayerSource); }, "PlayerConnect");
+      [&](auto *State) { return State->PlayerConnect(PlayerKind); }, "PlayerConnect");
 }
 
 Status Engine::PlayerDisconnect(LobbyPlayerId Id) noexcept {
@@ -33,19 +34,20 @@ Status Engine::PlayerDisconnect(LobbyPlayerId Id) noexcept {
       [&](auto *State) { return State->PlayerDisconnect(Id); }, "PlayerDisconnect");
 }
 
-ErrorOr<StartGameResponse> Engine::PlayerReady(LobbyPlayerId LobbyPlayerId) noexcept {
-  return CheckStateAndCall<PrepareGameState>(
-      [&](auto *State) -> ErrorOr<StartGameResponse> {
-        auto ReadyStatus = State->PlayerReady(LobbyPlayerId);
-        if (ReadyStatus.IsError()) {
-          return ReadyStatus;
-        }
-        if (State->AreAllPlayersReady()) {
-          return StartGame();
-        }
-        return Status::Success();
+PlayerReadyResponse Engine::PlayerReady(LobbyPlayerId LobbyPlayerId) noexcept {
+  PrepareGameState *CurrentState;
+  auto Status = CheckStateAndCall<PrepareGameState>(
+      [&](auto *State) {
+        CurrentState = State;
+        return State->PlayerReady(LobbyPlayerId);
       },
       "PlayerReady");
+  PlayerReadyResponse Response;
+  if (Status.IsSuccess() && CurrentState->AreAllPlayersReady()) {
+    Response.StartGame = StartGame(LobbyPlayerId);
+  }
+  Response.Result = std::move(Status);
+  return Response;
 }
 
 Status Engine::PlayerNotReady(LobbyPlayerId LobbyPlayerId) noexcept {
@@ -81,15 +83,50 @@ Status Engine::PlayerTurnOrderLater(LobbyPlayerId LobbyPlayerId) noexcept {
       "PlayerTurnOrderLater");
 }
 
-StartGameResponse Engine::StartGame() noexcept {
-  auto NeutralId = EnsureStateAndCall<PrepareGameState>(
-      [&](auto *State) { return State->NeutralPlayerConnect(); }, "NeutralPlayerConnect");
-  SetPlayerName(NeutralId, "Neutral");
+NewTurnEvent Engine::NewTurn() noexcept {
+  auto &State = std::get<OnlineGameState>(State_);
+  auto &PlayerIdx = State.SavedState.CurrentPlayerIdx;
+  PlayerIdx = (PlayerIdx + 1) % State.Players.size();
+  if (PlayerIdx == 0) {
+    ++State.SavedState.Turn;
+  }
+  const auto PlayerId = State.Players[PlayerIdx].MapId;
 
-  auto TurnOrder = EnsureStateAndCall<PrepareGameState>(
-      [&](auto *State) { return State->GetTurnOrder(); }, "StartGame");
-  StartGameResponse Response{.TurnOrder = {TurnOrder.begin(), TurnOrder.end()}};
-  return Response;
+  NewTurnEvent Event{.TurnNo = State.SavedState.Turn, .Player = PlayerId};
+  auto Income = State.SavedState.Map.Systems.Resources.GetTotalIncome(PlayerId);
+  Event.Income = std::move(Income);
+
+  auto CellsGained = State.SavedState.Map.Systems.LandPropagation.Propagate(
+      State.SavedState.Map.GlobalMap, PlayerId);
+  Event.CellsGained = std::move(CellsGained);
+  return Event;
+}
+
+const StartGameResponse &Engine::StartGame(LobbyPlayerId LobbyPlayerId) noexcept {
+  if (!StartGameResponse_) {
+    auto NeutralId = EnsureStateAndCall<PrepareGameState>(
+        [&](auto *State) { return State->NeutralPlayerConnect(); }, "NeutralPlayerConnect");
+    SetPlayerName(NeutralId, "Neutral");
+
+    auto TurnOrder = EnsureStateAndCall<PrepareGameState>(
+        [&](auto *State) { return State->GetTurnOrder(); }, "StartGame");
+    auto Players = EnsureStateAndCall<PrepareGameState>(
+        [&](auto *State) { return State->CreatePlayers(); }, "CreatePlayers");
+
+    auto &State = State_.emplace<OnlineGameState>(Mod_, MapState_, std::move(Players));
+    StartGameResponse_.emplace(
+        StartGameResponse{.TurnOrder = {TurnOrder.begin(), TurnOrder.end()}});
+
+    if (State.SavedState.Turn == 0) { // Game start.
+      auto Event = NewTurn();
+      assert(Event.Income); // FIXME: fine for PoC, but can be nullopt for other players.
+      State.SavedState.PlayerStates[Event.Player].ResourcesGained += *Event.Income;
+
+      StartGameResponse_->TurnEvent.emplace(std::move(Event));
+    }
+  }
+  return *StartGameResponse_;
+  // TODO: add event to outstanding updates for other players.
 }
 
 } // namespace NotAGame
