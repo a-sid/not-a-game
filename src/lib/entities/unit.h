@@ -71,8 +71,12 @@ public:
 
 template <typename T> class ValueTrait {
 public:
+  ValueTrait() noexcept = default;
+  ValueTrait(const ValueTrait &RHS) noexcept = default;
+  ValueTrait &operator=(const ValueTrait &RHS) noexcept = default;
+
   ValueTrait(T BaseValue) noexcept : BaseValue_{BaseValue}, Value_{BaseValue} {}
-  virtual void RecomputeEffects(const SmallVector<Effect, 16> &Effects) noexcept;
+  virtual void RecomputeEffects(const SmallVector<Effect, 16> &Effects) noexcept {}
 
   T GetBaseValue() const noexcept { return BaseValue_; }
   T GetEffectiveValue() const noexcept { return EffectiveValue_; }
@@ -86,6 +90,10 @@ protected:
 
 template <typename T> class CappedTrait : public ValueTrait<T> {
 public:
+  CappedTrait() noexcept = default;
+  CappedTrait(const CappedTrait &RHS) noexcept = default;
+  CappedTrait &operator=(const CappedTrait &RHS) noexcept = default;
+
   CappedTrait(T BaseValue, T Cap) noexcept : ValueTrait<T>{BaseValue}, Cap_{Cap} {}
   virtual void RecomputeEffects(const SmallVector<Effect, 16> &Effects) noexcept {
     ValueTrait<T>::RecomputeEffects(Effects);
@@ -98,9 +106,24 @@ private:
 
 using SizeTrait = ValueTrait<Size>;
 
-class Trait : public ValueTrait<Bitset> {
+class BitsetTrait : public ValueTrait<Bitset> {
 public:
   virtual void RecomputeEffects(const SmallVector<Effect, 16> &Effects) noexcept;
+};
+
+struct Skill {};
+
+struct LeaderData {
+  Id<Unit> ComponentId;
+
+  std::string Name;
+
+  SizeTrait Leadership;
+  SizeTrait Steps;
+  SizeTrait ViewRange;
+
+  Inventory Items;
+  SmallVector<Skill, 8> Skills;
 };
 
 struct UnitDescriptor : public Named {
@@ -138,51 +161,93 @@ struct UnitDescriptor : public Named {
   Resources ResurrectCost;
   Resources HealPerHPCost;
 };
+// class Unit {
+// public:
+//   Coord GetPosition() const noexcept { return Position_; }
+//   void SetPosition(Coord Position) noexcept { Position_ = Position; }
 
-class LeaderData {
-  std::string Name_;
+//  bool IsAlive() const noexcept { return Health_.GetValue() != 0; }
 
-  SizeTrait Leadership_;
-  SizeTrait Steps_;
-  SizeTrait ViewRange_;
+//  bool IsLeader() const noexcept { return LeaderData_.IsValid(); }
 
-  Inventory Items_;
-};
+//  uint8_t GetWidth() const noexcept { return Registry_.GetObjectById(Descriptor_).Width; }
+//  uint8_t GetHeight() const noexcept { return Registry_.GetObjectById(Descriptor_).Height; }
 
-class Unit {
+//  Size GetLevel() const noexcept { return Level_; }
+//  const SizeTrait &GetHealth() const noexcept { return Health_; }
+
+// private:
+//   Utils::Registry<UnitDescriptor> &Registry_;
+//   Id<UnitDescriptor> Descriptor_;
+//   Id<LeaderData> LeaderData_;
+
+//  Size Level_;
+
+//  SizeTrait Health_;
+//  SizeTrait Experience_;
+//  SizeTrait Speed_;
+
+//  SizeTrait Damage_;
+
+//  Id<Squad> Squad_;
+//  Coord Position_;
+
+//  std::vector<Id<Effect>> Effects;
+
+//  bool IsMovable_ = true;
+//};
+
+class Unit : public Named {
 public:
-  Coord GetPosition() const noexcept { return Position_; }
-  void SetPosition(Coord Position) noexcept { Position_ = Position; }
+  Unit(Named N, const ResourceRegistry &ResourceRegistry) noexcept
+      : Named{std::move(N)}, HireCost{ResourceRegistry}, ResurrectCost{ResourceRegistry},
+        HealPerHPCost{ResourceRegistry} {}
 
-  bool IsAlive() const noexcept { return Health_.GetValue() != 0; }
+  Id<Icon> IconId;
 
-  bool IsLeader() const noexcept { return LeaderData_.IsValid(); }
+  Size ExpForKill = 0;
 
-  uint8_t GetWidth() const noexcept { return Registry_.GetObjectById(Descriptor_).Width; }
-  uint8_t GetHeight() const noexcept { return Registry_.GetObjectById(Descriptor_).Height; }
+  Bitset Immunes;
+  Bitset Wards;
 
-  Size GetLevel() const noexcept { return Level_; }
-  const SizeTrait &GetHealth() const noexcept { return Health_; }
+  uint8_t Width = 1;
+  uint8_t Height = 1;
 
-private:
-  Utils::Registry<UnitDescriptor> &Registry_;
-  Id<UnitDescriptor> Descriptor_;
-  Id<LeaderData> LeaderData_;
+  Id<Unit> PreviousForm;
 
-  Size Level_;
+  Id<LeaderData> LeaderDataId; // Valid iff a unit is a leader.
 
-  SizeTrait Health_;
-  SizeTrait Experience_;
-  SizeTrait Speed_;
+  Size HealthGrowth = 0;
+  Size DamageGrowth = 0;
+  Size ExpForKillGrowth = 0;
 
-  SizeTrait Damage_;
+  Resources HireCost;
+  Resources ResurrectCost;
+  Resources HealPerHPCost;
 
-  Id<Squad> Squad_;
-  Coord Position_;
+  Size Level;
 
-  std::vector<Id<Effect>> Effects_;
+  SizeTrait Health;
+  SizeTrait Experience;
+  SizeTrait Speed;
+
+  SizeTrait AttackPower;
+  CappedTrait<Size> Armor;
+
+  Id<Unit> ComponentId;
+  Id<Squad> SquadId;
+  Coord GridPosition;
+
+  std::vector<Id<Effect>> Effects;
 
   bool IsMovable_ = true;
+
+  bool IsAlive() const noexcept { return Health.GetValue() != 0; }
+
+  bool IsLeader() const noexcept { return LeaderDataId.IsValid(); }
+
+private:
+  // Utils::Registry<UnitDescriptor> &Registry_;
 };
 
 } // namespace NotAGame

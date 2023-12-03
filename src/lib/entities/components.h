@@ -1,6 +1,8 @@
 #pragma once
 
+#include "entities/global_map.h"
 #include "entities/resource.h"
+#include "entities/squad.h"
 #include "util/id.h"
 #include "util/paged_vector.h"
 #include "util/types.h"
@@ -11,8 +13,10 @@
 namespace NotAGame {
 
 class Player;
-
 using PlayerId = Id<Player>;
+
+class MapObject;
+using MapObjectId = Id<MapObject>;
 
 struct LandPropagationSettings {
   SmallVector<Size, 8> TownPropagationByLevel;
@@ -32,13 +36,15 @@ template <typename T, size_t PageSize = 64> class GameplaySystem {
 public:
   using TurnableComponent = std::optional<T>;
   Id<T> AddComponent(T &&Component) noexcept {
+    const auto ComponentId = Components_.size();
     Components_.push_back(TurnableComponent{std::move(Component)});
-    return Components_.size() - 1;
+    Components_.back()->ComponentId = ComponentId;
+    return ComponentId;
   }
 
   Id<T> AddComponent(const T &Component) noexcept {
+    const auto ComponentId = Components_.size();
     Components_.push_back(TurnableComponent{Component});
-    const auto ComponentId = Components_.size() - 1;
     Components_.back()->ComponentId = ComponentId;
     return ComponentId;
   }
@@ -246,6 +252,17 @@ private:
   const ResourceRegistry &ResourceRegistry_;
 };
 
+class MapObject;
+using MapObjectId = Id<MapObject>;
+
+using GarrisonSystem = GameplaySystem<GarrisonComponent>;
+
+using GuardSystem = GameplaySystem<GuardComponent>;
+
+using UnitSystem = GameplaySystem<Unit, 1024>;
+using LeaderSystem = GameplaySystem<LeaderData>;
+using SquadSystem = GameplaySystem<Squad>;
+
 struct GameplaySystems {
   GameplaySystems(const ResourceRegistry &ResourceRegistry, Size PlayersCount,
                   Dims3D MapSize) noexcept
@@ -255,6 +272,11 @@ struct GameplaySystems {
   LandPropagationSystem LandPropagation;
   VisibilitySystem Visibility;
   ResourceSystem Resources;
+  UnitSystem Units;
+  LeaderSystem Leaders;
+  GuardSystem Guards;
+  GarrisonSystem Garrisons;
+  SquadSystem Squads;
 };
 
 } // namespace NotAGame

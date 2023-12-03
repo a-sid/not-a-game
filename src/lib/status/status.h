@@ -12,6 +12,7 @@ enum class ErrorCode {
   ObjectNotFound,
   GameSlotBusy,
   WrongState,
+  WrongPlayer,
   MapError,
   MaxCode = MapError,
 };

@@ -27,12 +27,11 @@ public:
   Id<Unit> &GetUnit(Dim X, Dim Y) noexcept { return Units_[Height_ * Y + X]; }
 
   bool CanPlaceUnit(Id<Unit> UnitId, const Unit *Unit, Coord Coord) const noexcept {
-    if (Coord.X + ToDim(Unit->GetWidth()) > Width_ ||
-        Coord.Y + ToDim(Unit->GetHeight()) > Height_) {
+    if (Coord.X + ToDim(Unit->Width) > Width_ || Coord.Y + ToDim(Unit->Height) > Height_) {
       return false;
     }
-    for (Dim Y = Coord.Y, EY = Coord.Y + ToDim(Unit->GetHeight()); Y < EY; ++Y) {
-      for (Dim X = Coord.X, EX = Coord.X + ToDim(Unit->GetWidth()); X < EX; ++X) {
+    for (Dim Y = Coord.Y, EY = Coord.Y + ToDim(Unit->Height); Y < EY; ++Y) {
+      for (Dim X = Coord.X, EX = Coord.X + ToDim(Unit->Width); X < EX; ++X) {
         if (GetUnit(X, Y).IsValid()) {
           return false;
         }
@@ -51,12 +50,12 @@ public:
 
 private:
   void SetUnit(Id<Unit> UnitId, Unit *Unit, Coord Coord) noexcept {
-    for (Dim Y = Coord.Y, EY = Coord.Y + ToDim(Unit->GetHeight()); Y < EY; ++Y) {
-      for (Dim X = Coord.X, EX = Coord.X + ToDim(Unit->GetWidth()); X < EX; ++X) {
+    for (Dim Y = Coord.Y, EY = Coord.Y + ToDim(Unit->Height); Y < EY; ++Y) {
+      for (Dim X = Coord.X, EX = Coord.X + ToDim(Unit->Width); X < EX; ++X) {
         GetUnit(X, Y) = UnitId;
       }
     }
-    Unit->SetPosition(Coord);
+    Unit->GridPosition = Coord;
   }
 
   std::vector<Id<Unit>> Units_;
@@ -73,28 +72,25 @@ struct GridSettings {
 
 class Squad {
 public:
-  explicit Squad(const GridSettings &Settings, Utils::Registry<Unit> &Registry,
-                 Id<Unit> Leader) noexcept
-      : Grid_{Settings.Width, Settings.Height}, Leader_{Leader}, Registry_{Registry} {
+  Squad(const GridSettings &Settings, Id<Unit> Leader, Id<Player> PlayerId) noexcept
+      : Grid_{Settings.Width, Settings.Height}, Leader_{Leader}, Player_{PlayerId} {
     Units_.push_back(Leader);
   }
   Grid &GetGrid() noexcept { return Grid_; }
 
-  Unit *GetUnit(Dim X, Dim Y) const noexcept {
-    return Registry_.TryGetObjectById(Grid_.GetUnit(X, Y));
-  }
+  Id<Unit> GetUnit(Dim X, Dim Y) const noexcept { return Grid_.GetUnit(X, Y); }
 
   /*auto GetUnits() const noexcept {
     return Units_ | std::views::transform([this](auto Id) { return Registry_.GetObjectById(Id); });
   }*/
+
+  Id<Squad> ComponentId;
 
 private:
   Grid Grid_;
   SmallVector<Id<Unit>, 8> Units_;
   Id<Unit> Leader_;
   Id<Player> Player_;
-
-  Utils::Registry<Unit> &Registry_;
 };
 
 } // namespace NotAGame

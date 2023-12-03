@@ -121,7 +121,7 @@ public:
 
     LoadBuildingPages(M, Doc["building_pages"]);
     LoadResources(M, Path / "resources");
-    LoadUnits(M, Path / "units");
+    LoadUnitPresets(M, Path / "units");
     LoadSpells(M, Path / "spells");
     LoadFractions(M, Path / "fractions");
 
@@ -147,8 +147,12 @@ private:
     }
   }
 
-  static void LoadUnits(Mod &M, const std::filesystem::path &Path) noexcept {
+  static void LoadUnitDescriptors(Mod &M, const std::filesystem::path &Path) noexcept {
     LoadDirectory(M, Path, "unit.json", LoadUnitDescriptor);
+  }
+
+  static void LoadUnitPresets(Mod &M, const std::filesystem::path &Path) noexcept {
+    LoadDirectory(M, Path, "unit.json", LoadUnitPreset);
   }
 
   template <typename Value> static void LoadBuildingPages(Mod &M, const Value &V) noexcept {
@@ -158,6 +162,53 @@ private:
       std::string Name = P.GetName();
       M.BuildingPages_.AddObject(std::move(Name), std::move(P));
     }
+  }
+
+  static void LoadUnitPreset(Mod &M, const std::filesystem::path &Path,
+                             const rapidjson::Document &Doc) noexcept {
+    Named Named = LoadNamed(Doc);
+    auto Name = Named.GetName();
+
+    Unit U{std::move(Named), M.GetResources()};
+
+    const auto &Costs = Doc["costs"];
+    U.HireCost = ParseResources(M, Costs["hire"]);
+    U.ResurrectCost = ParseResources(M, Costs["resurrect"]);
+    U.HealPerHPCost = ParseResources(M, Costs["heal"]);
+
+    U.Width = Doc["width"].GetUint();
+    U.Height = Doc["height"].GetUint();
+    U.ExpForKill = Doc["exp_for_kill"].GetUint();
+
+    U.Armor = CappedTrait<Size>{Doc["armor"].GetUint(), 99};
+    U.Experience = Doc["exp"].GetUint();
+    U.Health = Doc["health"].GetUint();
+    U.Speed = Doc["speed"].GetUint();
+
+    // TODO U.Immunes
+    // TODO U.IconId
+    // TODO U.Wards
+
+    if (Doc.HasMember("prev_form")) {
+      U.PreviousForm = M.GetUnitPresets().GetId(GetString(Doc["prev_form"]));
+    }
+
+    const auto &Growth = Doc["growth"][0]; // TODO
+    U.DamageGrowth = Growth["damage"].GetUint();
+    U.HealthGrowth = Growth["health"].GetUint();
+    U.ExpForKillGrowth = Growth["exp_for_kill"].GetUint();
+
+    if (Doc.HasMember("leader")) {
+      const auto &LeaderDataDoc = Doc["leader"];
+      LeaderData LD;
+      LD.Leadership = LeaderDataDoc["leadership"].GetUint();
+      LD.Steps = LeaderDataDoc["move_points"].GetUint();
+      LD.ViewRange = LeaderDataDoc["view_range"].GetUint();
+      // TODO LD.Perks
+      U.LeaderDataId = M.LeaderPresets_.AddObject(std::string{Name}, std::move(LD));
+    }
+
+    M.UnitPresets_.AddObject(std::move(Name), std::move(U));
   }
 
   static void LoadUnitDescriptor(Mod &M, const std::filesystem::path &Path,
@@ -275,8 +326,8 @@ private:
     Fraction F{std::move(Named)};
 
     FillIds(Doc, M.GetSpells(), "spells", F.Spells);
-    FillIds(Doc, M.UnitDescriptors_, "units", F.UnitDescriptors);
-    FillIds(Doc, M.UnitDescriptors_, "leaders", F.Leaders);
+    FillIds(Doc, M.UnitPresets_, "units", F.Units);
+    FillIds(Doc, M.UnitPresets_, "leaders", F.Leaders);
 
     // Buildings are loaded sequentially to resolve requirement dependencies between them.
     LoadOrdered(

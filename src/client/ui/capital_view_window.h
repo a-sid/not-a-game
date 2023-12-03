@@ -13,7 +13,8 @@ class CapitalViewWindow : public QMainWindow {
 
 public:
   explicit CapitalViewWindow(const NotAGame::InterfaceSettings &IfaceSettings,
-                             const NotAGame::GridSettings &GridSettings, QWidget *Parent = nullptr);
+                             const NotAGame::GridSettings &GridSettings,
+                             NotAGame::UnitSystem &Units, QWidget *Parent = nullptr);
   ~CapitalViewWindow();
 
 private:

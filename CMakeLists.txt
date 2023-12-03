@@ -77,6 +77,7 @@ add_library(entities STATIC
   src/lib/entities/item.h
   src/lib/entities/inventory.h
   src/lib/entities/lord.h
+  src/lib/entities/map_components.h
   src/lib/entities/spell.h
   src/lib/entities/squad.h
   src/lib/entities/unit.h

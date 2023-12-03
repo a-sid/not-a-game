@@ -129,4 +129,51 @@ const StartGameResponse &Engine::StartGame(LobbyPlayerId LobbyPlayerId) noexcept
   // TODO: add event to outstanding updates for other players.
 }
 
+ErrorOr<HireLeaderResponse> Engine::HireLeader(PlayerId PlayerId,
+                                               Id<GuardComponent> GuardComponentId,
+                                               Id<Unit> UnitPresetId, Coord GridPosition) noexcept {
+  auto &State = std::get<OnlineGameState>(State_);
+  auto &PlayerIdx = State.SavedState.CurrentPlayerIdx;
+  auto CurrentPlayerId = State.Players[PlayerIdx].MapId;
+
+  if (PlayerId != CurrentPlayerId) {
+    return Status::Error(ErrorCode::WrongPlayer, "Not this player's turn!");
+  }
+
+  const auto &Unit = Mod_.GetUnitPresets().GetObjectById(UnitPresetId);
+  if (Unit.LeaderDataId.IsInvalid()) {
+    return Status::Error(ErrorCode::WrongState, "Unit is not a leader!");
+  }
+
+  auto &PlayerState = State.SavedState.PlayerStates[PlayerId];
+  if (!(PlayerState.ResourcesGained >= Unit.HireCost)) {
+    return Status::Error(ErrorCode::WrongState, "Not enough resources!");
+  }
+
+  auto &Systems = State.SavedState.Map.Systems;
+  auto &Guard = Systems.Guards.GetComponent(GuardComponentId);
+  if (Guard.SquadId.IsValid()) {
+    return Status::Error(ErrorCode::WrongState, "Guard slot is busy!");
+  }
+
+  // Copy preset to the state as a new unit.
+  const auto &Leader = Mod_.GetLeaderPresets().GetObjectById(Unit.LeaderDataId);
+  auto LeaderComponent = Systems.Leaders.AddComponent(Leader);
+  auto UnitId = Systems.Units.AddComponent(Unit);
+  auto &AddedUnit = Systems.Units.GetComponent(UnitId);
+  AddedUnit.LeaderDataId = LeaderComponent;
+
+  Squad NewSquad{Mod_.GetGridSettings(), UnitId, PlayerId};
+  const auto GridAdd = NewSquad.GetGrid().TrySetUnit(UnitId, &AddedUnit, GridPosition);
+  assert(GridAdd);
+
+  auto SquadComponent = Systems.Squads.AddComponent(NewSquad);
+  AddedUnit.SquadId = SquadComponent;
+
+  Guard.SquadId = SquadComponent;
+  // TODO: outstanding updates.
+
+  return HireLeaderResponse{.LeaderId = UnitId, .SquadId = SquadComponent};
+}
+
 } // namespace NotAGame

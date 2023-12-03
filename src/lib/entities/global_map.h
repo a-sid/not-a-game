@@ -1,8 +1,8 @@
 #pragma once
 
 #include "entities/common.h"
-#include "entities/components.h"
 #include "entities/inventory.h"
+#include "entities/map_components.h"
 #include "entities/squad.h"
 #include "status/status.h"
 #include "util/id.h"
@@ -24,6 +24,10 @@ class Mod;
 class Player;
 class Squad;
 
+struct LandPropagation;
+struct VisibilityRange;
+struct ResourceSource;
+
 enum class TerrainKind { Ground, Water, Relief };
 
 enum class GroundKind { Plain, Road, Forest };
@@ -31,40 +35,6 @@ enum class GroundKind { Plain, Road, Forest };
 class MapObject;
 using MapObjectId = Id<MapObject>;
 using MapObjectPtr = std::unique_ptr<MapObject>;
-
-struct MapComponent {
-  MapObjectId ObjectId;
-};
-
-struct CapitalComponent : public MapComponent {
-  Id<Fraction> FractionId;
-  Id<Player> PlayerId;
-};
-
-struct BattleResult : public MapComponent {
-  std::string Loser;
-  std::string Winner;
-};
-
-struct GarrisonComponent : public MapComponent {
-  Grid Garrison;
-};
-
-struct TownComponent : public MapComponent {
-  Size Level;
-  PlayerId Owner;
-};
-
-struct RewardComponent : public MapComponent {
-  std::optional<Resources> Resource;
-  Id<Inventory> Items;
-};
-
-using BattleResults = std::vector<BattleResult>;
-
-struct GraveComponent : public MapComponent {
-  std::vector<BattleResults> Battles;
-};
 
 class MapObject : public Named {
 public:
@@ -87,8 +57,10 @@ public:
 
   std::optional<Coord> GetEntrancePos() const noexcept { return EntrancePos_; }
 
-  void Register(const Mod &, GameplaySystems &) noexcept {}
+  // void Register(const Mod &, GameplaySystems &) noexcept {}
 
+  Id<GarrisonComponent> Garrison;
+  Id<GuardComponent> Guard;
   Id<CapitalComponent> CapitalTrait;
   Id<TownComponent> TownTrait;
   Id<GraveComponent> GraveTrait;

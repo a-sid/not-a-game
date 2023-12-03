@@ -30,6 +30,11 @@ struct PlayerReadyResponse {
   std::optional<StartGameResponse> StartGame;
 };
 
+struct HireLeaderResponse {
+  Id<Unit> LeaderId;
+  Id<Squad> SquadId;
+};
+
 class EventListener {
 public:
   virtual void OnPlayerNewTurn(const NewTurnEvent &Event) noexcept = 0;
@@ -50,6 +55,9 @@ public:
   Status PlayerTurnOrderLater(LobbyPlayerId LobbyPlayerId) noexcept;
 
   const StartGameResponse &StartGame(LobbyPlayerId LobbyPlayerId) noexcept;
+  ErrorOr<HireLeaderResponse> HireLeader(PlayerId PlayerId, Id<GuardComponent> GuardComponentId,
+                                         Id<Unit> UnitPresetId, Coord GridPosition) noexcept;
+
   Status EndTurn(const Player &Player) noexcept;
 
   void SetEventListener(EventListener *Listener) noexcept { EventListener_ = Listener; }

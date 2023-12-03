@@ -15,8 +15,8 @@ struct Fraction : public Named {
   Fraction(Named &&Name) noexcept : Named{std::move(Name)} {}
 
   std::vector<Id<Spell>> Spells;
-  std::vector<Id<UnitDescriptor>> UnitDescriptors;
-  std::vector<Id<UnitDescriptor>> Leaders;
+  std::vector<Id<Unit>> Units;
+  std::vector<Id<Unit>> Leaders;
   Utils::Registry<Building> Buildings;
 };
 
