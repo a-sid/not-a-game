@@ -48,6 +48,12 @@ struct BattleResult : public MapComponent {
 
 struct GarrisonComponent : public MapComponent {
   Grid Garrison;
+  PlayerId Owner;
+};
+
+struct GuardComponent : public MapComponent {
+  Id<Squad> SquadId;
+  PlayerId Owner;
 };
 
 struct TownComponent : public MapComponent {
@@ -89,6 +95,8 @@ public:
 
   void Register(const Mod &, GameplaySystems &) noexcept {}
 
+  Id<GarrisonComponent> Garrison;
+  Id<GuardComponent> Guard;
   Id<CapitalComponent> CapitalTrait;
   Id<TownComponent> TownTrait;
   Id<GraveComponent> GraveTrait;

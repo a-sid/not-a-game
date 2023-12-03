@@ -129,4 +129,17 @@ const StartGameResponse &Engine::StartGame(LobbyPlayerId LobbyPlayerId) noexcept
   // TODO: add event to outstanding updates for other players.
 }
 
+Status Engine::HireLeader(PlayerId PlayerId, Id<GuardComponent> GuardComponentId,
+                          Id<UnitDescriptor> UnitDescriptorId) noexcept {
+  auto &State = std::get<OnlineGameState>(State_);
+  auto &PlayerIdx = State.SavedState.CurrentPlayerIdx;
+  auto CurrentPlayerId = State.Players[PlayerIdx].MapId;
+
+  if (PlayerId != CurrentPlayerId) {
+    return Status::Error(ErrorCode::WrongPlayer, "Not this player's turn!");
+  }
+
+  auto &SquadComponent = State.SavedState.Map.Systems.Guards;
+}
+
 } // namespace NotAGame

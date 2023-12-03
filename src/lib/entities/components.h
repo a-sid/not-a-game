@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entities/resource.h"
+#include "entities/squad.h"
 #include "util/id.h"
 #include "util/paged_vector.h"
 #include "util/types.h"
@@ -11,8 +12,10 @@
 namespace NotAGame {
 
 class Player;
-
 using PlayerId = Id<Player>;
+
+class MapObject;
+using MapObjectId = Id<MapObject>;
 
 struct LandPropagationSettings {
   SmallVector<Size, 8> TownPropagationByLevel;
@@ -246,6 +249,29 @@ private:
   const ResourceRegistry &ResourceRegistry_;
 };
 
+class MapObject;
+using MapObjectId = Id<MapObject>;
+
+struct MapComponent {
+  MapObjectId ObjectId;
+};
+
+struct GarrisonComponent : public MapComponent {
+  Grid Garrison;
+  PlayerId Owner;
+};
+using GarrisonSystem = GameplaySystem<GarrisonComponent>;
+
+struct GuardComponent : public MapComponent {
+  Id<Squad> SquadId;
+  PlayerId Owner;
+};
+
+using GuardSystem = GameplaySystem<GuardComponent>;
+
+using UnitSystem = GameplaySystem<Unit, 256>;
+using SquadSystem = GameplaySystem<Squad>;
+
 struct GameplaySystems {
   GameplaySystems(const ResourceRegistry &ResourceRegistry, Size PlayersCount,
                   Dims3D MapSize) noexcept
@@ -255,6 +281,7 @@ struct GameplaySystems {
   LandPropagationSystem LandPropagation;
   VisibilitySystem Visibility;
   ResourceSystem Resources;
+  GuardSystem Guards;
 };
 
 } // namespace NotAGame

@@ -50,6 +50,9 @@ public:
   Status PlayerTurnOrderLater(LobbyPlayerId LobbyPlayerId) noexcept;
 
   const StartGameResponse &StartGame(LobbyPlayerId LobbyPlayerId) noexcept;
+  Status HireLeader(PlayerId PlayerId, Id<GuardComponent> GuardComponentId,
+                    Id<UnitDescriptor> UnitDescriptorId) noexcept;
+
   Status EndTurn(const Player &Player) noexcept;
 
   void SetEventListener(EventListener *Listener) noexcept { EventListener_ = Listener; }
