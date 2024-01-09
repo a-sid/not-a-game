@@ -8,6 +8,7 @@
 #include "util/types.h"
 
 #include <optional>
+#include <ranges>
 #include <unordered_set>
 
 namespace NotAGame {
@@ -35,6 +36,7 @@ struct LandPropagation {
 template <typename T, size_t PageSize = 64> class GameplaySystem {
 public:
   using TurnableComponent = std::optional<T>;
+
   Id<T> AddComponent(T &&Component) noexcept {
     const auto ComponentId = Components_.size();
     Components_.push_back(TurnableComponent{std::move(Component)});
@@ -61,6 +63,10 @@ public:
     auto &Value = Components_[ComponentId];
     assert(Value);
     return *Value;
+  }
+
+  T *GetComponentOrNull(Id<T> ComponentId) noexcept {
+    return ComponentId.IsValid() ? &GetComponent(ComponentId) : nullptr;
   }
 
 private:
@@ -263,6 +269,9 @@ using UnitSystem = GameplaySystem<Unit, 1024>;
 using LeaderSystem = GameplaySystem<LeaderData>;
 using SquadSystem = GameplaySystem<Squad>;
 
+using CapitalSystem = GameplaySystem<CapitalComponent>;
+using TownSystem = GameplaySystem<TownComponent>;
+
 struct GameplaySystems {
   GameplaySystems(const ResourceRegistry &ResourceRegistry, Size PlayersCount,
                   Dims3D MapSize) noexcept
@@ -277,6 +286,8 @@ struct GameplaySystems {
   GuardSystem Guards;
   GarrisonSystem Garrisons;
   SquadSystem Squads;
+  CapitalSystem Capitals;
+  TownSystem Towns;
 };
 
 } // namespace NotAGame

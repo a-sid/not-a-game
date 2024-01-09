@@ -2,6 +2,8 @@
 
 #include <QMainWindow>
 
+#include "engine/engine.h"
+#include "engine/player.h"
 #include "entities/components.h"
 #include "game/mod.h"
 #include "state/state.h"
@@ -28,4 +30,6 @@ private:
 
   NotAGame::Mod Mod_;
   NotAGame::MapState Map_;
+  std::optional<NotAGame::Engine> Engine_;
+  NotAGame::Player Player_;
 };

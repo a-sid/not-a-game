@@ -21,24 +21,30 @@ struct MapComponent {
   MapObjectId ObjectId;
 };
 
-struct CapitalComponent : public MapComponent {
-  Id<Fraction> FractionId;
-  Id<Player> PlayerId;
-};
-
 struct GarrisonComponent : public MapComponent {
   Grid Garrison;
   PlayerId Owner;
 };
 
 struct GuardComponent : public MapComponent {
+  Id<GuardComponent> ComponentId;
   Id<Squad> SquadId;
   PlayerId Owner;
 };
 
 struct TownComponent : public MapComponent {
   Size Level;
+  Id<GuardComponent> GuardId;
+  Id<GarrisonComponent> GarrisonId;
   PlayerId Owner;
+};
+
+struct CapitalComponent : public MapComponent {
+  Id<CapitalComponent> ComponentId;
+  Id<Fraction> FractionId;
+  Id<GuardComponent> GuardId;
+  Id<GarrisonComponent> GarrisonId;
+  Id<Player> PlayerId;
 };
 
 struct RewardComponent : public MapComponent {

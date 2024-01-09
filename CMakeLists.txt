@@ -11,6 +11,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_AUTOUIC ON)
+
 include(GoogleTest)
 
 add_compile_definitions(RAPIDJSON_HAS_STDSTRING RAPIDJSON_HAS_CXX11_RANGE_FOR)
@@ -28,7 +30,7 @@ add_compile_definitions(RAPIDJSON_HAS_STDSTRING RAPIDJSON_HAS_CXX11_RANGE_FOR)
 #    endif()
 #endif()
 
-find_package(Qt5 COMPONENTS Core Widgets LinguistTools REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui Widgets LinguistTools REQUIRED)
 
 include(FetchContent)
 
@@ -49,10 +51,11 @@ set(TS_FILES not-a-game_en_GB.ts)
 include_directories(${CMAKE_SOURCE_DIR}/src/lib)
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
-add_library(ui STATIC
+add_library(ui
   src/lib/ui/animation.h
   src/lib/ui/icon.h
 )
+target_link_libraries(ui PUBLIC Qt5::Gui)
 
 add_library(util STATIC
   src/lib/util/assert.h
@@ -84,7 +87,7 @@ add_library(entities STATIC
   src/lib/entities/unit.cpp
 )
 
-target_link_libraries(entities PRIVATE range-v3::range-v3)
+target_link_libraries(entities PRIVATE ui range-v3::range-v3 Qt5::Gui)
 
 add_library(state STATIC
   src/lib/state/state.cpp
@@ -92,7 +95,7 @@ add_library(state STATIC
   src/lib/state/view.h
 )
 
-target_link_libraries(state PRIVATE range-v3::range-v3)
+target_link_libraries(state PRIVATE range-v3::range-v3 Qt5::Gui)
 
 add_library(engine STATIC
   src/lib/engine/engine.cpp
@@ -103,7 +106,7 @@ add_library(engine STATIC
   src/lib/engine/player_state.h
 )
 
-target_link_libraries(engine PRIVATE state)
+target_link_libraries(engine PRIVATE state  Qt5::Gui)
 
 
 add_executable(not-a-game
@@ -114,6 +117,9 @@ add_executable(not-a-game
   src/client/ui/global_map_window.h
   src/client/ui/global_map_window.cpp
   src/client/ui/global_map_window.ui
+  src/client/ui/hire_unit_dialog.h
+  src/client/ui/hire_unit_dialog.cpp
+  src/client/ui/hire_unit_dialog.ui
   src/client/ui/new_turn_dialog.cpp
   src/client/ui/new_turn_dialog.h
   src/client/ui/new_turn_dialog.ui
@@ -141,7 +147,7 @@ add_executable(not-a-game
   ${TS_FILES}
 )
 
-target_link_libraries(not-a-game PRIVATE Qt5::Widgets)
+target_link_libraries(not-a-game PRIVATE Qt5::Widgets  Qt5::Gui)
 target_link_libraries(not-a-game PRIVATE entities state util engine fmt::fmt)
 
 add_executable(test_util

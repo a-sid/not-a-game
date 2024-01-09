@@ -4,8 +4,6 @@
 #include "global_map_window.h"
 #include "player_setup_dialog.h"
 
-#include "engine/engine.h"
-#include "engine/player.h"
 #include "util/types.h"
 
 using namespace NotAGame;
@@ -42,7 +40,16 @@ MapState StartWindow::CreateMap() noexcept {
                    true};
   auto CapitalObjId = M.AddObject("1st_capital", std::move(CapObj));
   auto &Cap = M.GetObject(CapitalObjId.GetValue());
-  CapitalComponent Comp{.FractionId = Mod_.GetFractions().GetId("mountain_clans"), .PlayerId = 0};
+
+  GuardComponent CapitalGuard{.SquadId = {}, .Owner = 0};
+  const auto CapitalGuardId = Systems.Guards.AddComponent(CapitalGuard);
+
+  CapitalComponent Comp{.FractionId = Mod_.GetFractions().GetId("mountain_clans"),
+                        .GuardId = CapitalGuardId,
+                        .PlayerId = 0};
+
+  Comp.ObjectId = CapitalObjId.GetValue();
+  Systems.Capitals.AddComponent(Comp);
   Cap.CapitalTrait = M.AddCapital(Comp);
   VisibilityRange CapRange{
       .Player = 0, .Origin = Cap.GetPosition(), .OriginSize = Cap.GetSize(), .Radius = 7};
@@ -66,24 +73,34 @@ void StartWindow::on_btnTestGame_clicked() {
     return;
   }
 
-  Player Human{.Name = Dlg.GetPlayerName().toStdString(),
-               .PlayerColor = NotAGame::ColorByTurnOrder(1)};
+  Player_.Name = Dlg.GetPlayerName().toStdString();
+  Player_.PlayerColor = NotAGame::ColorByTurnOrder(0);
 
-  Engine Eng{Mod_, Map_};
-  auto PlayerId = Eng.PlayerConnect(PlayerKind::Human).GetValue();
-  Eng.SetPlayerId(PlayerId, Map_.GlobalMap.GetCapitals()[0].PlayerId);
-  Eng.SetPlayerName(PlayerId, std::move(Human.Name));
-  Eng.SetPlayerLord(PlayerId, Human.LordId);
+  Engine_.emplace(Mod_, Map_);
 
-  auto Response = Eng.PlayerReady(PlayerId);
+  auto PlayerLobbyId = Engine_->PlayerConnect(PlayerKind::Human).GetValue();
+  auto PlayerMapId = Map_.GlobalMap.GetCapitals()[0].PlayerId;
+  auto MapId = Engine_->SetPlayerId(PlayerLobbyId, PlayerMapId);
+  assert(MapId.IsSuccess());
+  Player_.CapitalId = PlayerMapId.GetValue();
+  Engine_->SetPlayerName(PlayerLobbyId, Player_.Name);
+  Engine_->SetPlayerLord(PlayerLobbyId, Player_.LordId);
+
+  auto Response = Engine_->PlayerReady(PlayerLobbyId);
   assert(Response.Result.IsSuccess());
   assert(Response.StartGame.has_value());
   assert(Response.StartGame->TurnOrder[0] == 0);
   assert(Response.StartGame->TurnEvent);
   // OnlineGameState State{Mod_, Map_, Response.StartGame.TurnOrder};
 
-  auto *W = new GlobalMapWindow{Mod_, *Eng.GetOnlineState(), Eng, Human, this};
-  Eng.SetEventListener(W);
+  auto &OnlineState = *Engine_->GetOnlineState();
+  auto &Capital = OnlineState.SavedState.Map.Systems.Capitals.GetComponent(0);
+  assert(Capital.FractionId == 0);
+
+  OnlineState.SavedState.PlayerStates[0].ResourcesGained.SetAmountByName("gold", 1000);
+
+  auto *W = new GlobalMapWindow{Mod_, OnlineState, *Engine_, OnlineState.Players[0], this};
+  Engine_->SetEventListener(W);
   W->show();
   W->OnPlayerNewTurn(*Response.StartGame->TurnEvent);
   // this->hide();

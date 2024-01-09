@@ -7,6 +7,7 @@
 #include "entities/resource.h"
 #include "entities/squad.h"
 #include "entities/unit.h"
+#include "ui/icon.h"
 
 #include "game/settings.h"
 
@@ -46,6 +47,7 @@ public:
   const auto &GetLeaderDescriptors() const noexcept { return LeaderDescriptors_; }
   const auto &GetLeaderPresets() const noexcept { return LeaderPresets_; }
   const auto &GetUnitPresets() const noexcept { return UnitPresets_; }
+  const auto &GetIcons() const noexcept { return Icons_; }
 
   const GridSettings &GetGridSettings() const noexcept { return GridSettings_; }
   const InterfaceSettings &GetInterfaceSettings() const noexcept { return InterfaceSettings_; }
@@ -72,6 +74,7 @@ private:
   Utils::Registry<LeaderData> LeaderPresets_;
   Utils::Registry<DamageSource, 16> DamageSources_;
   Utils::Registry<std::unique_ptr<UnitTrait>> UnitTraits_;
+  Utils::Registry<Icon, 256> Icons_;
   //  Utils::Registry<ItemKind> ItemKinds_;
   // Utils::Registry<Item> Items_;
   Utils::Registry<Spell> Spells_;

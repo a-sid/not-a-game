@@ -19,16 +19,22 @@ class SquadWidget : public QWidget {
   Q_OBJECT
 
 public:
-  SquadWidget(const NotAGame::InterfaceSettings &IfaceSettings,
-              const NotAGame::GridSettings &GridSettings, NotAGame::UnitSystem &Units,
-              NotAGame::Squad *Squad, QWidget *Parent = nullptr);
+  SquadWidget(const NotAGame::Mod &M, NotAGame::UnitSystem &Units, NotAGame::Squad *Squad,
+              QWidget *Parent = nullptr);
   ~SquadWidget();
 
   void SetSquad(NotAGame::Squad *Squad) noexcept;
   void Update() noexcept;
 
+signals:
+  void UnitSlotClicked(QPoint Pos);
+
+public slots:
+  void OnChildClick(QPoint Pos);
+
 private:
   //  Ui::SquadWidget *ui;
+  const NotAGame::Mod &Mod_;
   NotAGame::Squad *Squad_;
   const NotAGame::GridSettings &GridSettings_;
   const NotAGame::InterfaceSettings &IfaceSettings_;

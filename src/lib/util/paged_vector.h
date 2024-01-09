@@ -13,6 +13,12 @@ public:
 
   template <typename ParentT> class Iterator {
   public:
+    typedef std::random_access_iterator_tag iterator_category;
+    typedef T value_type;
+    typedef T *pointer;
+    typedef T &reference;
+    typedef std::ptrdiff_t difference_type;
+
     explicit Iterator(ParentT *Parent = nullptr, size_t Idx = 0) noexcept
         : Parent_{Parent}, Idx_{Idx} {}
 
@@ -23,6 +29,23 @@ public:
       ++Idx_;
       return *this;
     }
+
+    Iterator &operator+=(difference_type n) noexcept {
+      Idx_ += n;
+      return *this;
+    }
+
+    Iterator operator+(difference_type n) noexcept { return Iterator{Parent_, Idx_ + n}; }
+
+    Iterator &operator-=(difference_type n) noexcept {
+      Idx_ -= n;
+      return *this;
+    }
+
+    Iterator operator-(difference_type n) noexcept { return Iterator{Parent_, Idx_ - n}; }
+    T &operator[](difference_type n) const noexcept { return *Iterator{Parent_, Idx_ + n}; }
+
+    difference_type operator-(Iterator Rhs) const noexcept { return Idx_ - Rhs.Idx_; }
 
     Iterator operator++(int) noexcept {
       auto Iter = *this;
@@ -41,6 +64,8 @@ public:
     }
 
   private:
+    auto AsPair() const noexcept { return std::pair{Parent_, Idx_}; }
+
     ParentT *Parent_ = nullptr;
     size_t Idx_ = 0;
   };

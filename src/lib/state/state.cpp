@@ -112,6 +112,9 @@ Status PrepareGameState::SetPlayerId(LobbyPlayerId LobbyPlayerId, PlayerId Playe
   }
 
   Player->MapId = PlayerId;
+  Player->CapitalId = PlayerId.GetValue();
+  Player->FractionId = GlobalMap_.GetCapitals()[PlayerId].FractionId;
+
   LobbyIdToMapId_[LobbyPlayerId] = PlayerId;
   return Status::Success();
 }

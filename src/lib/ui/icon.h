@@ -1,4 +1,11 @@
-#ifndef ICON_H
-#define ICON_H
+#pragma once
 
-#endif // ICON_H
+#include <QPixmap>
+
+namespace NotAGame {
+
+struct Icon {
+  QPixmap Data;
+};
+
+} // namespace NotAGame

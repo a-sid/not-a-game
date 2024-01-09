@@ -18,13 +18,13 @@ struct UnitPosition {
 class Grid {
 public:
   Grid(uint8_t Width, uint8_t Height) noexcept
-      : Units_{Width * Height, NullId}, Width_{Width}, Height_{Height} {}
+      : Units_(Width * Height, NullId), Width_{Width}, Height_{Height} {}
 
   Id<Unit> GetUnit(Coord Coord) const noexcept { return GetUnit(Coord.X, Coord.Y); }
-  Id<Unit> GetUnit(Dim X, Dim Y) const noexcept { return Units_[Height_ * Y + X]; }
+  Id<Unit> GetUnit(Dim X, Dim Y) const noexcept { return Units_[Width_ * Y + X]; }
 
   Id<Unit> &GetUnit(Coord Coord) noexcept { return GetUnit(Coord.X, Coord.Y); }
-  Id<Unit> &GetUnit(Dim X, Dim Y) noexcept { return Units_[Height_ * Y + X]; }
+  Id<Unit> &GetUnit(Dim X, Dim Y) noexcept { return Units_[Width_ * Y + X]; }
 
   bool CanPlaceUnit(Id<Unit> UnitId, const Unit *Unit, Coord Coord) const noexcept {
     if (Coord.X + ToDim(Unit->Width) > Width_ || Coord.Y + ToDim(Unit->Height) > Height_) {

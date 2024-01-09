@@ -131,7 +131,8 @@ struct UnitDescriptor : public Named {
       : Named{std::move(N)}, HireCost{ResourceRegistry}, ResurrectCost{ResourceRegistry},
         HealPerHPCost{ResourceRegistry} {}
 
-  Id<Icon> IconId;
+  Id<Icon> GridIconId;
+  Id<Icon> InfoIconId;
 
   Size MaxHealth = 0;
   Size MaxExperience = 0;
@@ -203,7 +204,8 @@ public:
       : Named{std::move(N)}, HireCost{ResourceRegistry}, ResurrectCost{ResourceRegistry},
         HealPerHPCost{ResourceRegistry} {}
 
-  Id<Icon> IconId;
+  Id<Icon> GridIconId;
+  Id<Icon> InfoIconId;
 
   Size ExpForKill = 0;
 

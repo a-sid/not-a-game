@@ -156,6 +156,8 @@ ErrorOr<HireLeaderResponse> Engine::HireLeader(PlayerId PlayerId,
     return Status::Error(ErrorCode::WrongState, "Guard slot is busy!");
   }
 
+  PlayerState.ResourcesGained -= Unit.HireCost;
+
   // Copy preset to the state as a new unit.
   const auto &Leader = Mod_.GetLeaderPresets().GetObjectById(Unit.LeaderDataId);
   auto LeaderComponent = Systems.Leaders.AddComponent(Leader);

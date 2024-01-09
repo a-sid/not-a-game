@@ -76,6 +76,7 @@ struct PlayerGameState {
   // static PlayerGameState MakeInitialState(GameplaySystems &Systems, GlobalMap &Map) noexcept;
 
   PlayerId Player;
+  Id<CapitalComponent> CapitalId;
   const Mod &M;
   MapState &Map;
   Resources ResourcesGained;

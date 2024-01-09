@@ -210,8 +210,8 @@ void GlobalMapWindow::HandleObjectClick(QPoint MapCoord, Id<MapObject> ObjectId)
 
 void GlobalMapWindow::OpenCapitalScreen() {
 
-  auto W = new CapitalViewWindow{Mod_.GetInterfaceSettings(), Mod_.GetGridSettings(),
-                                 State_.SavedState.Map.Systems.Units, this};
+  auto W = new CapitalViewWindow{Mod_,    State_.SavedState.Map.Systems, Engine_,
+                                 Player_, Id<CapitalComponent>{0},       this};
   W->show();
 }
 
@@ -233,7 +233,7 @@ void MapView::mouseMoveEvent(QMouseEvent *event) {
 
 void MapView::mousePressEvent(QMouseEvent *event) {
   emit MouseDown(event);
-  QGraphicsView::mouseMoveEvent(event);
+  QGraphicsView::mousePressEvent(event);
 }
 
 void MapView::mouseReleaseEvent(QMouseEvent *event) {

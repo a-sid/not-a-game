@@ -10,6 +10,11 @@ namespace NotAGame {
 
 namespace {
 
+template <typename Value> const auto *FindMemberPtr(const Value &V, const auto &Key) noexcept {
+  auto Found = V.FindMember(Key);
+  return Found != V.MemberEnd() ? &Found->value : nullptr;
+}
+
 template <typename Value> std::string GetString(const Value &V) noexcept {
   return std::string{V.GetString(), V.GetStringLength()};
 }
@@ -185,6 +190,13 @@ private:
     U.Health = Doc["health"].GetUint();
     U.Speed = Doc["speed"].GetUint();
 
+    Icon GridIcon{.Data = QPixmap{(Path / "grid.png").c_str()}};
+    std::cerr << Path / "grid.png\n";
+    U.GridIconId = M.Icons_.AddObject(Name + "_" + "grid", std::move(GridIcon));
+
+    Icon InfoIcon{.Data = QPixmap{(Path / "info.png").c_str()}};
+    U.InfoIconId = M.Icons_.AddObject(Name + "_" + "info", std::move(InfoIcon));
+
     // TODO U.Immunes
     // TODO U.IconId
     // TODO U.Wards
@@ -198,12 +210,13 @@ private:
     U.HealthGrowth = Growth["health"].GetUint();
     U.ExpForKillGrowth = Growth["exp_for_kill"].GetUint();
 
-    if (Doc.HasMember("leader")) {
-      const auto &LeaderDataDoc = Doc["leader"];
+    const auto *LeaderDataDoc = FindMemberPtr(Doc, "leader");
+    bool IsLeader = Doc.HasMember("leader");
+    if (LeaderDataDoc) {
       LeaderData LD;
-      LD.Leadership = LeaderDataDoc["leadership"].GetUint();
-      LD.Steps = LeaderDataDoc["move_points"].GetUint();
-      LD.ViewRange = LeaderDataDoc["view_range"].GetUint();
+      LD.Leadership = (*LeaderDataDoc)["leadership"].GetUint();
+      LD.Steps = (*LeaderDataDoc)["move_points"].GetUint();
+      LD.ViewRange = (*LeaderDataDoc)["view_range"].GetUint();
       // TODO LD.Perks
       U.LeaderDataId = M.LeaderPresets_.AddObject(std::string{Name}, std::move(LD));
     }
