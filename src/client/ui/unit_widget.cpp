@@ -61,9 +61,15 @@ void UnitWidget::Update() {
   if (Unit_) {
     const auto &Icon = Mod_.GetIcons().GetObjectById(Unit_->GridIconId).Data;
     UI_->gfxUnit->setPixmap(std::any_cast<QPixmap>(Icon));
+    std::cerr << QString{"%1/%2"}
+                     .arg(Unit_->Health.GetValue())
+                     .arg(Unit_->Health.GetEffectiveValue())
+                     .toStdString()
+              << "\n";
     UI_->lblHealth->setText(
-        QString{"%1/%2"}.arg(Unit_->Health.GetValue(), Unit_->Health.GetEffectiveValue()));
+        QString{"%1/%2"}.arg(Unit_->Health.GetValue()).arg(Unit_->Health.GetEffectiveValue()));
   } else {
+    UI_->gfxUnit->clear();
     UI_->lblHealth->clear();
   }
 }

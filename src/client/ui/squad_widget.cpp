@@ -5,6 +5,12 @@
 #include <QSizePolicy>
 #include <qdebug.h>
 
+namespace {
+
+constexpr size_t kLabelHeightPx = 25;
+
+}
+
 SquadWidget::SquadWidget(const NotAGame::Mod &M, NotAGame::UnitSystem &Units,
                          NotAGame::Squad *Squad, QWidget *Parent)
     : Mod_{M}, Squad_{Squad}, GridSettings_{M.GetGridSettings()},
@@ -18,7 +24,7 @@ SquadWidget::SquadWidget(const NotAGame::Mod &M, NotAGame::UnitSystem &Units,
   setSizePolicy(QSizePolicy{QSizePolicy::Fixed, QSizePolicy::Fixed});
   setMinimumSize(GridSettings_.Width * IfaceSettings_.UnitGridSize.Width +
                      (GridSettings_.Width + 1) * IfaceSettings_.GridSpacerHeight,
-                 GridSettings_.Height * IfaceSettings_.UnitGridSize.Height +
+                 GridSettings_.Height * (IfaceSettings_.UnitGridSize.Height + kLabelHeightPx) +
                      (GridSettings_.Height + 1) * IfaceSettings_.GridSpacerHeight);
 
   Update();
@@ -37,7 +43,8 @@ void SquadWidget::Update() noexcept {
         auto *Widget = UnitWidgets_[CurrentWidgetIdx];
         Widget->setVisible(true);
         Widget->move(W * (IfaceSettings_.UnitGridSize.Width + IfaceSettings_.GridSpacerHeight),
-                     H * (IfaceSettings_.UnitGridSize.Height + IfaceSettings_.GridSpacerHeight));
+                     H * (IfaceSettings_.UnitGridSize.Height + IfaceSettings_.GridSpacerHeight +
+                          kLabelHeightPx));
         Widget->SetUnit(QPoint(W, H), Unit);
 
         const uint8_t UW = Unit ? Unit->Width : 1;
