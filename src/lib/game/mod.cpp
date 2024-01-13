@@ -190,11 +190,10 @@ private:
     U.Health = Doc["health"].GetUint();
     U.Speed = Doc["speed"].GetUint();
 
-    Icon GridIcon{.Data = QPixmap{(Path / "grid.png").c_str()}};
-    std::cerr << Path / "grid.png\n";
+    Icon GridIcon{Path / "grid.png"};
     U.GridIconId = M.Icons_.AddObject(Name + "_" + "grid", std::move(GridIcon));
 
-    Icon InfoIcon{.Data = QPixmap{(Path / "info.png").c_str()}};
+    Icon InfoIcon{Path / "info.png"};
     U.InfoIconId = M.Icons_.AddObject(Name + "_" + "info", std::move(InfoIcon));
 
     // TODO U.Immunes

@@ -53,6 +53,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src)
 
 add_library(ui
   src/lib/ui/animation.h
+  src/lib/ui/icon.cpp
   src/lib/ui/icon.h
 )
 target_link_libraries(ui PUBLIC Qt5::Gui)
@@ -87,7 +88,7 @@ add_library(entities STATIC
   src/lib/entities/unit.cpp
 )
 
-target_link_libraries(entities PRIVATE ui range-v3::range-v3 Qt5::Gui)
+target_link_libraries(entities PRIVATE ui range-v3::range-v3)
 
 add_library(state STATIC
   src/lib/state/state.cpp
@@ -95,7 +96,7 @@ add_library(state STATIC
   src/lib/state/view.h
 )
 
-target_link_libraries(state PRIVATE range-v3::range-v3 Qt5::Gui)
+target_link_libraries(state PRIVATE range-v3::range-v3)
 
 add_library(engine STATIC
   src/lib/engine/engine.cpp
@@ -106,7 +107,7 @@ add_library(engine STATIC
   src/lib/engine/player_state.h
 )
 
-target_link_libraries(engine PRIVATE state  Qt5::Gui)
+target_link_libraries(engine PRIVATE state)
 
 
 add_executable(not-a-game

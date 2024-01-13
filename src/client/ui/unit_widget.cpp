@@ -59,7 +59,8 @@ void UnitWidget::Update() {
   UI_->gfxUnit->resize(Settings_.UnitGridSize.Width * W + (W - 1) * Settings_.GridSpacerHeight,
                        Settings_.UnitGridSize.Height * H + (H - 1) * Settings_.GridSpacerHeight);
   if (Unit_) {
-    UI_->gfxUnit->setPixmap(Mod_.GetIcons().GetObjectById(Unit_->GridIconId).Data);
+    const auto &Icon = Mod_.GetIcons().GetObjectById(Unit_->GridIconId).Data;
+    UI_->gfxUnit->setPixmap(std::any_cast<QPixmap>(Icon));
     UI_->lblHealth->setText(
         QString{"%1/%2"}.arg(Unit_->Health.GetValue(), Unit_->Health.GetEffectiveValue()));
   } else {
