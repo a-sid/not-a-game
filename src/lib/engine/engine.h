@@ -35,6 +35,10 @@ struct HireLeaderResponse {
   Id<Squad> SquadId;
 };
 
+struct HireUnitResponse {
+  Id<Unit> UnitId;
+};
+
 class EventListener {
 public:
   virtual void OnPlayerNewTurn(const NewTurnEvent &Event) noexcept = 0;
@@ -57,6 +61,8 @@ public:
   const StartGameResponse &StartGame(LobbyPlayerId LobbyPlayerId) noexcept;
   ErrorOr<HireLeaderResponse> HireLeader(PlayerId PlayerId, Id<GuardComponent> GuardComponentId,
                                          Id<Unit> UnitPresetId, Coord GridPosition) noexcept;
+  ErrorOr<HireUnitResponse> HireUnit(PlayerId PlayerId, Id<GuardComponent> GuardComponentId,
+                                     Id<Unit> UnitPresetId, Coord GridPosition) noexcept;
 
   Status EndTurn(const Player &Player) noexcept;
 

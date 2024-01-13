@@ -75,12 +75,15 @@ public:
   ValueTrait(const ValueTrait &RHS) noexcept = default;
   ValueTrait &operator=(const ValueTrait &RHS) noexcept = default;
 
-  ValueTrait(T BaseValue) noexcept : BaseValue_{BaseValue}, Value_{BaseValue} {}
+  ValueTrait(T BaseValue) noexcept
+      : BaseValue_{BaseValue}, Value_{BaseValue}, EffectiveValue_{BaseValue} {}
   virtual void RecomputeEffects(const SmallVector<Effect, 16> &Effects) noexcept {}
 
   T GetBaseValue() const noexcept { return BaseValue_; }
   T GetEffectiveValue() const noexcept { return EffectiveValue_; }
   T GetValue() const noexcept { return Value_; }
+
+  void SetValue(T Value) noexcept { Value_ = Value; }
 
 protected:
   T BaseValue_;

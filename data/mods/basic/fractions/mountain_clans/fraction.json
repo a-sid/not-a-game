@@ -9,8 +9,7 @@
     "en": "Race of gnomes, created by Wotan, lives in the snowy mountains of Nevendaar and is experienced in the mining craft."
   },
   "units": [
-    "gnome",
-    "gnome_warrior"
+    "gnome"
   ],
   "leaders": [
     "guardian"

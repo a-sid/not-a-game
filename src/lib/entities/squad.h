@@ -26,7 +26,7 @@ public:
   Id<Unit> &GetUnit(Coord Coord) noexcept { return GetUnit(Coord.X, Coord.Y); }
   Id<Unit> &GetUnit(Dim X, Dim Y) noexcept { return Units_[Width_ * Y + X]; }
 
-  bool CanPlaceUnit(Id<Unit> UnitId, const Unit *Unit, Coord Coord) const noexcept {
+  bool CanPlaceUnit(const Unit *Unit, Coord Coord) const noexcept {
     if (Coord.X + ToDim(Unit->Width) > Width_ || Coord.Y + ToDim(Unit->Height) > Height_) {
       return false;
     }
@@ -41,7 +41,7 @@ public:
   }
 
   bool TrySetUnit(Id<Unit> UnitId, Unit *Unit, Coord Coord) noexcept {
-    if (CanPlaceUnit(UnitId, Unit, Coord)) {
+    if (CanPlaceUnit(Unit, Coord)) {
       SetUnit(UnitId, Unit, Coord);
       return true;
     }
@@ -79,6 +79,7 @@ public:
   Grid &GetGrid() noexcept { return Grid_; }
 
   Id<Unit> GetUnit(Dim X, Dim Y) const noexcept { return Grid_.GetUnit(X, Y); }
+  Id<Unit> GetLeader() const noexcept { return Leader_; }
 
   /*auto GetUnits() const noexcept {
     return Units_ | std::views::transform([this](auto Id) { return Registry_.GetObjectById(Id); });

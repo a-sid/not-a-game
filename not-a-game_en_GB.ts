@@ -93,6 +93,14 @@
     </message>
 </context>
 <context>
+    <name>HireUnitDialog</name>
+    <message>
+        <location filename="src/client/ui/hire_unit_dialog.ui" line="20"/>
+        <source>Hire unit</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>NewTurnDialog</name>
     <message>
         <location filename="src/client/ui/new_turn_dialog.ui" line="20"/>

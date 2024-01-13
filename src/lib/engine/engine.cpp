@@ -178,4 +178,76 @@ ErrorOr<HireLeaderResponse> Engine::HireLeader(PlayerId PlayerId,
   return HireLeaderResponse{.LeaderId = UnitId, .SquadId = SquadComponent};
 }
 
+ErrorOr<HireUnitResponse> Engine::HireUnit(PlayerId PlayerId, Id<GuardComponent> GuardComponentId,
+                                           Id<Unit> UnitPresetId, Coord GridPosition) noexcept {
+  auto &State = std::get<OnlineGameState>(State_);
+  auto &PlayerIdx = State.SavedState.CurrentPlayerIdx;
+  auto CurrentPlayerId = State.Players[PlayerIdx].MapId;
+
+  if (PlayerId != CurrentPlayerId) {
+    return Status::Error(ErrorCode::WrongPlayer, "Not this player's turn!");
+  }
+
+  const auto &Unit = Mod_.GetUnitPresets().GetObjectById(UnitPresetId);
+  if (Unit.LeaderDataId.IsValid()) {
+    return Status::Error(ErrorCode::WrongState, "Unit should not be a leader!");
+  }
+
+  auto &Systems = State.SavedState.Map.Systems;
+  auto *Guard = Systems.Guards.GetComponentOrNull(GuardComponentId);
+  if (!Guard) {
+    return Status::Error(ErrorCode::WrongState, "Non-existing guard id!");
+  }
+
+  auto *Squad = Systems.Squads.GetComponentOrNull(Guard->SquadId);
+  if (!Squad) {
+    return Status::Error(ErrorCode::WrongState, "Non-existing squad id!");
+  }
+
+  auto *LeaderUnit = Systems.Units.GetComponentOrNull(Squad->GetLeader());
+  if (!LeaderUnit) {
+    return Status::Error(ErrorCode::WrongState, "Non-existing leader unit id!");
+  }
+
+  auto *LeaderComponent = Systems.Leaders.GetComponentOrNull(LeaderUnit->LeaderDataId);
+  if (!LeaderComponent) {
+    return Status::Error(ErrorCode::WrongState, "Non-existing leader data id!");
+  }
+
+  const auto RequiredLeadership = Unit.Width * Unit.Height;
+  auto &Leadership = LeaderComponent->Leadership;
+  const auto AvailableLeadership = Leadership.GetEffectiveValue() - Leadership.GetValue();
+  if (AvailableLeadership < RequiredLeadership) {
+    return Status::Error(ErrorCode::WrongState, "Insufficient leadership!");
+  }
+
+  // TODO: check if unit is from available units list.
+
+  if (!Squad->GetGrid().CanPlaceUnit(&Unit, GridPosition)) {
+    return Status::Error(ErrorCode::WrongState, "Cannot place unit!");
+  }
+
+  auto &PlayerState = State.SavedState.PlayerStates[PlayerId];
+  if (!(PlayerState.ResourcesGained >= Unit.HireCost)) {
+    return Status::Error(ErrorCode::WrongState, "Not enough resources!");
+  }
+
+  // All checks passed. Hire unit.
+  PlayerState.ResourcesGained -= Unit.HireCost;
+
+  // Copy preset to the state as a new unit.
+  auto UnitId = Systems.Units.AddComponent(Unit);
+  auto &AddedUnit = Systems.Units.GetComponent(UnitId);
+  AddedUnit.SquadId = Squad->ComponentId;
+
+  const auto GridAdd = Squad->GetGrid().TrySetUnit(UnitId, &AddedUnit, GridPosition);
+  assert(GridAdd);
+
+  Leadership.SetValue(Leadership.GetValue() + RequiredLeadership);
+
+  // TODO: outstanding updates.
+
+  return HireUnitResponse{.UnitId = UnitId};
+}
+
 } // namespace NotAGame

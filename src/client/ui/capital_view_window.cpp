@@ -31,22 +31,42 @@ CapitalViewWindow::CapitalViewWindow(const Mod &M, GameplaySystems &Systems, Eng
 CapitalViewWindow::~CapitalViewWindow() { delete UI_; }
 
 void CapitalViewWindow::OnGuardSlotClick(QPoint Pos) {
+  const auto &Fraction = Mod_.GetFractions().GetObjectById(Player_.FractionId);
   if (Guard_->SquadId.IsInvalid()) {
-    const auto &Leaders = Mod_.GetFractions().GetObjectById(Player_.FractionId).Leaders;
-    HireUnitDialog HireDlg{Mod_, Leaders, this};
-    if (HireDlg.exec() == QDialog::Accepted) {
-      auto UnitPresetId = HireDlg.GetSelectedUnit();
-      if (UnitPresetId.IsInvalid()) {
-        return;
-      }
+    HireUnitDialog HireDlg{Mod_, Fraction.Leaders, this};
+    if (HireDlg.exec() != QDialog::Accepted) {
+      return;
+    }
 
-      auto HireResult =
-          Engine_.HireLeader(Player_.MapId, Capital_->GuardId, UnitPresetId,
-                             Coord{static_cast<Size>(Pos.x()), static_cast<Size>(Pos.y())});
-      assert(HireResult.IsSuccess());
+    auto UnitPresetId = HireDlg.GetSelectedUnit();
+    if (UnitPresetId.IsInvalid()) {
+      return;
+    }
+
+    auto HireResult =
+        Engine_.HireLeader(Player_.MapId, Capital_->GuardId, UnitPresetId,
+                           Coord{static_cast<Size>(Pos.x()), static_cast<Size>(Pos.y())});
+    if (HireResult.IsSuccess()) {
       auto &NewSquad = Systems_.Squads.GetComponent(HireResult.GetValue().SquadId);
       GuardWidget_->SetSquad(&NewSquad);
     }
+    return;
+  }
+
+  HireUnitDialog HireDlg{Mod_, Fraction.Units, this};
+  if (HireDlg.exec() != QDialog::Accepted) {
+    return;
+  }
+
+  auto UnitPresetId = HireDlg.GetSelectedUnit();
+  if (UnitPresetId.IsInvalid()) {
+    return;
+  }
+
+  auto HireResult = Engine_.HireUnit(Player_.MapId, Capital_->GuardId, UnitPresetId,
+                                     Coord{static_cast<Size>(Pos.x()), static_cast<Size>(Pos.y())});
+  if (HireResult.IsSuccess()) {
+    GuardWidget_->Update();
   }
 }
 

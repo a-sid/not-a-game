@@ -215,6 +215,7 @@ private:
     if (LeaderDataDoc) {
       LeaderData LD;
       LD.Leadership = (*LeaderDataDoc)["leadership"].GetUint();
+      LD.Leadership.SetValue(0);
       LD.Steps = (*LeaderDataDoc)["move_points"].GetUint();
       LD.ViewRange = (*LeaderDataDoc)["view_range"].GetUint();
       // TODO LD.Perks
