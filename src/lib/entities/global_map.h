@@ -38,7 +38,19 @@ using MapObjectPtr = std::unique_ptr<MapObject>;
 
 class MapObject : public Named {
 public:
-  enum Kind { Capital, Town, Grave, Rod, Shop, MagicShop, TrainingCamp, Resource, Ruins, Other };
+  enum Kind {
+    Capital,
+    Town,
+    Grave, // TODO: make it a terrain trait.
+    Rod,
+    Shop,
+    MagicShop,
+    TrainingCamp,
+    Resource,
+    Ruins,
+    Squad,
+    Other,
+  };
 
   MapObject(Named Name, Kind Kind, Coord3D Pos, Dims2D Size, std::optional<Coord> EntrancePos,
             bool IsPassable, bool IsLandPropagationBarrier) noexcept
@@ -59,6 +71,8 @@ public:
 
   // void Register(const Mod &, GameplaySystems &) noexcept {}
 
+  Id<Player> Owner;
+  Id<NotAGame::Squad> SquadTrait;
   Id<GarrisonComponent> Garrison;
   Id<GuardComponent> Guard;
   Id<CapitalComponent> CapitalTrait;

@@ -38,6 +38,7 @@ MapState StartWindow::CreateMap() noexcept {
                    Coord{4, 4},
                    false,
                    true};
+  CapObj.Owner = 0;
   auto CapitalObjId = M.AddObject("1st_capital", std::move(CapObj));
   auto &Cap = M.GetObject(CapitalObjId.GetValue());
 

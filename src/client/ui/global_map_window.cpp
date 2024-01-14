@@ -192,19 +192,56 @@ void GlobalMapWindow::OnMapMouseUp(QMouseEvent *Event) {
   MapMouseState_.IsMouseDown = false;
 }
 
+bool GlobalMapWindow::TrySelect(QPoint MapCoord, Id<MapObject> ObjectId) noexcept {
+  const auto &Obj = GlobalMap_.GetObject(ObjectId);
+  if (Obj.Owner != Player_.MapId) {
+    return false;
+  }
+  switch (Obj.GetKind()) {
+  case MapObject::Kind::Capital:
+    [[fallthrough]];
+  case MapObject::Kind::Town: {
+    SelectedObject_ = ObjectId;
+    UI_->lblSelection->setText(QString::fromStdString(Obj.GetTitle()));
+    return true;
+  }
+  case MapObject::Kind::Squad: {
+    const auto &Systems = State_.SavedState.Map.Systems;
+    const auto &Squad = Systems.Squads.GetComponent(Obj.SquadTrait);
+    const auto &LeaderUnit = Systems.Units.GetComponent(Squad.GetLeader());
+    const auto &LeaderData = Systems.Leaders.GetComponent(LeaderUnit.LeaderDataId);
+    UI_->lblSelection->setText(QString::fromStdString(LeaderData.Name));
+    return true;
+  }
+  default:
+    return false;
+  }
+}
+
 void GlobalMapWindow::HandleObjectClick(QPoint MapCoord, Id<MapObject> ObjectId) noexcept {
   const auto &Obj = GlobalMap_.GetObject(ObjectId);
-  if (const auto Entrance = Obj.GetEntrancePos()) {
-    if (MapCoord.x() == Obj.GetX() + Entrance->X && MapCoord.y() == Obj.GetY() + Entrance->Y) {
-      // OnEntranceClick(Obj);
+  if (SelectedObject_ == ObjectId) {
+    // Double click, open an object menu.
+    if (const auto Entrance = Obj.GetEntrancePos()) {
+      if (MapCoord.x() == Obj.GetX() + Entrance->X && MapCoord.y() == Obj.GetY() + Entrance->Y) {
+        // OnEntranceClick(Obj);
+        // return;
+      }
     }
     switch (Obj.GetKind()) {
     case MapObject::Kind::Capital:
       OpenCapitalScreen();
-      break;
+      return;
     default:
-      break;
+      return;
     }
+    return;
+  }
+  if (TrySelect(MapCoord, ObjectId)) {
+    return;
+  }
+  if (SelectedObject_.IsInvalid()) {
+    return;
   }
 }
 

@@ -62,32 +62,37 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="src/client/ui/global_map_window.ui" line="132"/>
-        <source>Continue moving</source>
+        <location filename="src/client/ui/global_map_window.ui" line="120"/>
+        <source>Ничего не выбрано</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="src/client/ui/global_map_window.ui" line="139"/>
-        <source>Guard</source>
+        <source>Continue moving</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="src/client/ui/global_map_window.ui" line="146"/>
-        <source>Install rod</source>
+        <source>Guard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="src/client/ui/global_map_window.ui" line="153"/>
-        <source>End turn</source>
+        <source>Install rod</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="src/client/ui/global_map_window.ui" line="160"/>
-        <source>Use scroll</source>
+        <source>End turn</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="src/client/ui/global_map_window.ui" line="167"/>
+        <source>Use scroll</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/global_map_window.ui" line="174"/>
         <source>Next hero</source>
         <translation type="unfinished"></translation>
     </message>
