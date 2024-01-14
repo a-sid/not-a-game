@@ -89,6 +89,13 @@ void GlobalMapWindow::DrawObject(QPainter &Painter, const MapObject &Object) noe
   case MapObject::Kind::Capital: {
     DrawRect(Painter, QPen{Qt::red, 2}, QBrush{Qt::darkRed}, Object.GetX(), Object.GetY(),
              Object.GetWidth(), Object.GetHeight());
+    const auto &Comp = State_.SavedState.Map.Systems.Capitals.GetComponent(Object.CapitalTrait);
+    const auto &Guard = State_.SavedState.Map.Systems.Guards.GetComponent(Comp.GuardId);
+    if (Guard.SquadId.IsValid()) {
+      DrawRect(Painter, QPen{Qt::black, 2}, QBrush{Qt::darkCyan},
+               Object.GetX() + Object.GetEntrancePos()->X,
+               Object.GetY() + Object.GetEntrancePos()->Y, 1, 1);
+    }
     break;
   }
   default:
@@ -182,9 +189,11 @@ void GlobalMapWindow::OnMapMouseUp(QMouseEvent *Event) {
   if (!MapMouseState_.IsDrag) { // click
     qDebug() << "Click\n";
     if (const auto MapCoord = GetMapCoord({Event->x(), Event->y()})) {
-      if (auto Obj = GlobalMap_.GetTile(CurrentLayer_, MapCoord->x(), MapCoord->y()).Object_;
-          Obj.IsValid()) {
-        HandleObjectClick(*MapCoord, Obj);
+      const auto &Tile = GlobalMap_.GetTile(CurrentLayer_, MapCoord->x(), MapCoord->y());
+      if (Tile.Object_.IsValid()) {
+        HandleObjectClick(*MapCoord, Tile.Object_);
+      } else if (Tile.Squad_.IsValid()) {
+        HandleSquadClick(*MapCoord, Tile.Squad_);
       }
     }
   }
@@ -192,25 +201,41 @@ void GlobalMapWindow::OnMapMouseUp(QMouseEvent *Event) {
   MapMouseState_.IsMouseDown = false;
 }
 
+bool GlobalMapWindow::TrySelectSquad(Id<Squad> SquadId) noexcept {
+  if (SquadId.IsInvalid()) {
+    return false;
+  }
+  const auto &Systems = State_.SavedState.Map.Systems;
+  const auto &Squad = Systems.Squads.GetComponent(SquadId);
+  const auto &LeaderUnit = Systems.Units.GetComponent(Squad.GetLeader());
+  const auto &LeaderData = Systems.Leaders.GetComponent(LeaderUnit.LeaderDataId);
+  UI_->lblSelection->setText(QString::fromStdString(LeaderData.Name));
+  return true;
+}
+
 bool GlobalMapWindow::TrySelect(QPoint MapCoord, Id<MapObject> ObjectId) noexcept {
   const auto &Obj = GlobalMap_.GetObject(ObjectId);
   if (Obj.Owner != Player_.MapId) {
     return false;
   }
+  const auto &Systems = State_.SavedState.Map.Systems;
   switch (Obj.GetKind()) {
   case MapObject::Kind::Capital:
     [[fallthrough]];
   case MapObject::Kind::Town: {
+    if (MapCoord == QPoint{static_cast<int>(Obj.GetX() + Obj.GetEntrancePos()->X),
+                           static_cast<int>(Obj.GetY() + Obj.GetEntrancePos()->Y)}) {
+      if (TrySelectSquad(Systems.Guards.GetComponent(Obj.Guard).SquadId)) {
+        return true;
+      }
+    }
     SelectedObject_ = ObjectId;
     UI_->lblSelection->setText(QString::fromStdString(Obj.GetTitle()));
     return true;
   }
+
   case MapObject::Kind::Squad: {
-    const auto &Systems = State_.SavedState.Map.Systems;
-    const auto &Squad = Systems.Squads.GetComponent(Obj.SquadTrait);
-    const auto &LeaderUnit = Systems.Units.GetComponent(Squad.GetLeader());
-    const auto &LeaderData = Systems.Leaders.GetComponent(LeaderUnit.LeaderDataId);
-    UI_->lblSelection->setText(QString::fromStdString(LeaderData.Name));
+    assert(TrySelectSquad(Obj.SquadTrait));
     return true;
   }
   default:
@@ -218,30 +243,61 @@ bool GlobalMapWindow::TrySelect(QPoint MapCoord, Id<MapObject> ObjectId) noexcep
   }
 }
 
+void GlobalMapWindow::HandleSquadClick(QPoint MapCoord, Id<Squad> SquadId) noexcept {
+  const auto *SelectedSquad = std::get_if<Id<Squad>>(&SelectedObject_);
+  if (SelectedSquad && *SelectedSquad == SquadId) {
+    // ShowArmyDialog();
+    return;
+  }
+  const auto &Systems = State_.SavedState.Map.Systems;
+  const auto &Squad = Systems.Squads.GetComponent(SquadId);
+  if (Squad.Player_ == Player_.MapId) { // Our squad, select it.
+    SelectedObject_ = SquadId;
+    const auto &Leader = Systems.Units.GetComponent(Squad.GetLeader());
+    const auto &LeaderData = Systems.Leaders.GetComponent(Leader.LeaderDataId);
+    UI_->lblSelection->setText(QString::fromStdString(LeaderData.Name));
+  }
+}
+
 void GlobalMapWindow::HandleObjectClick(QPoint MapCoord, Id<MapObject> ObjectId) noexcept {
   const auto &Obj = GlobalMap_.GetObject(ObjectId);
-  if (SelectedObject_ == ObjectId) {
-    // Double click, open an object menu.
+  const auto &Systems = State_.SavedState.Map.Systems;
+
+  // Is it a click on the entrance guard?
+  if (Obj.Owner == Player_.MapId) {
     if (const auto Entrance = Obj.GetEntrancePos()) {
       if (MapCoord.x() == Obj.GetX() + Entrance->X && MapCoord.y() == Obj.GetY() + Entrance->Y) {
+        const auto Guard = Obj.Guard;
+        if (Guard.IsValid()) {
+          const auto Squad = Systems.Guards.GetComponent(Obj.Guard).SquadId;
+          if (Squad.IsValid()) {
+            HandleSquadClick(MapCoord, Squad);
+            return;
+          }
+        }
         // OnEntranceClick(Obj);
         // return;
       }
     }
-    switch (Obj.GetKind()) {
-    case MapObject::Kind::Capital:
-      OpenCapitalScreen();
-      return;
-    default:
+
+    const auto *SelectedMapObject = std::get_if<Id<MapObject>>(&SelectedObject_);
+    if (SelectedMapObject && *SelectedMapObject == ObjectId) {
+      // Double click, open an object menu.
+      switch (Obj.GetKind()) {
+      case MapObject::Kind::Capital:
+        OpenCapitalScreen();
+        return;
+      default:
+        return;
+      }
       return;
     }
-    return;
-  }
-  if (TrySelect(MapCoord, ObjectId)) {
-    return;
-  }
-  if (SelectedObject_.IsInvalid()) {
-    return;
+    if (TrySelect(MapCoord, ObjectId)) {
+      return;
+    }
+    if (SelectedObject_.index() == 0) {
+      return;
+    }
   }
 }
 

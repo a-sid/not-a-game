@@ -67,7 +67,9 @@ private:
   void DrawObject(QPainter &Painter, const NotAGame::MapObject &Object) noexcept;
 
   void HandleObjectClick(QPoint MapCoord, NotAGame::Id<NotAGame::MapObject> Object) noexcept;
+  void HandleSquadClick(QPoint MapCoord, NotAGame::Id<NotAGame::Squad> Squad) noexcept;
   bool TrySelect(QPoint MapCoord, NotAGame::Id<NotAGame::MapObject> ObjectId) noexcept;
+  bool TrySelectSquad(NotAGame::Id<NotAGame::Squad> SquadId) noexcept;
 
   std::optional<QPoint> GetMapCoord(QPoint MousePos) const noexcept;
 
@@ -84,6 +86,7 @@ private:
   QPixmap MapPixmap_;
 
   MapMouseState MapMouseState_;
-  NotAGame::Id<NotAGame::MapObject> SelectedObject_;
+  std::variant<std::monostate, NotAGame::Id<NotAGame::MapObject>, NotAGame::Id<NotAGame::Squad>>
+      SelectedObject_;
   NotAGame::Dim CurrentLayer_ = 0;
 };

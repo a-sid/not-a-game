@@ -161,6 +161,8 @@ ErrorOr<HireLeaderResponse> Engine::HireLeader(PlayerId PlayerId,
   // Copy preset to the state as a new unit.
   const auto &Leader = Mod_.GetLeaderPresets().GetObjectById(Unit.LeaderDataId);
   auto LeaderComponent = Systems.Leaders.AddComponent(Leader);
+  auto &AddedLeader = Systems.Leaders.GetComponent(LeaderComponent);
+  AddedLeader.Name = "Герой";
   auto UnitId = Systems.Units.AddComponent(Unit);
   auto &AddedUnit = Systems.Units.GetComponent(UnitId);
   AddedUnit.LeaderDataId = LeaderComponent;

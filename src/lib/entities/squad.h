@@ -86,12 +86,12 @@ public:
   }*/
 
   Id<Squad> ComponentId;
+  Id<Player> Player_;
 
 private:
   Grid Grid_;
   SmallVector<Id<Unit>, 8> Units_;
   Id<Unit> Leader_;
-  Id<Player> Player_;
 };
 
 } // namespace NotAGame

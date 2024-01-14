@@ -64,6 +64,7 @@ MapState StartWindow::CreateMap() noexcept {
 
   ResourceSource CapitalIncome{.Income = R, .Player = 0};
   Cap.ResourceTrait = Systems.Resources.AddComponent(CapitalIncome);
+  Cap.Guard = CapitalGuardId;
 
   return MapState{.GlobalMap = std::move(M), .Systems = std::move(Systems)};
 }
