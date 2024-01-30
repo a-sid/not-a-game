@@ -44,7 +44,7 @@ void CapitalViewWindow::OnGuardSlotClick(QPoint Pos) {
     }
 
     auto HireResult =
-        Engine_.HireLeader(Player_.MapId, Capital_->GuardId, UnitPresetId,
+        Engine_.HireLeader(Player_.MapId, Capital_->GuardId, Capital_->ObjectId, UnitPresetId,
                            Coord{static_cast<Size>(Pos.x()), static_cast<Size>(Pos.y())});
     if (HireResult.IsSuccess()) {
       auto &NewSquad = Systems_.Squads.GetComponent(HireResult.GetValue().SquadId);

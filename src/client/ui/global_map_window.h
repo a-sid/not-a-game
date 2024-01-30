@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/engine.h"
+#include "engine/path.h"
 #include "engine/player.h"
 #include "entities/global_map.h"
 #include "game/mod.h"
@@ -65,7 +66,9 @@ private:
                 int Height) noexcept;
   void DrawTile(QPainter &Painter, int X, int Y) noexcept;
   void DrawObject(QPainter &Painter, const NotAGame::MapObject &Object) noexcept;
+  void DrawPath(QPainter &Painter, const NotAGame::Path &Path) noexcept;
 
+  void HandleTileClick(QPoint MapCoord, const NotAGame::Tile &Tile) noexcept;
   void HandleObjectClick(QPoint MapCoord, NotAGame::Id<NotAGame::MapObject> Object) noexcept;
   void HandleSquadClick(QPoint MapCoord, NotAGame::Id<NotAGame::Squad> Squad) noexcept;
   bool TrySelect(QPoint MapCoord, NotAGame::Id<NotAGame::MapObject> ObjectId) noexcept;
@@ -82,6 +85,8 @@ private:
   NotAGame::Engine &Engine_;
   NotAGame::Player &Player_;
   std::vector<QBrush> Brushes_;
+
+  std::unordered_map<NotAGame::Id<NotAGame::Squad>, NotAGame::Path> SquadPath_;
 
   QPixmap MapPixmap_;
 

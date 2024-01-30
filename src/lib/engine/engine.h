@@ -60,7 +60,8 @@ public:
 
   const StartGameResponse &StartGame(LobbyPlayerId LobbyPlayerId) noexcept;
   ErrorOr<HireLeaderResponse> HireLeader(PlayerId PlayerId, Id<GuardComponent> GuardComponentId,
-                                         Id<Unit> UnitPresetId, Coord GridPosition) noexcept;
+                                         MapObjectId MapObjectId, Id<Unit> UnitPresetId,
+                                         Coord GridPosition) noexcept;
   ErrorOr<HireUnitResponse> HireUnit(PlayerId PlayerId, Id<GuardComponent> GuardComponentId,
                                      Id<Unit> UnitPresetId, Coord GridPosition) noexcept;
 

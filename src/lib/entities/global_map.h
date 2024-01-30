@@ -68,6 +68,12 @@ public:
   Size GetHeight() const noexcept { return Size_.Height; }
 
   std::optional<Coord> GetEntrancePos() const noexcept { return EntrancePos_; }
+  std::optional<Coord3D> GetEntrancePosAbsolute() const noexcept {
+    if (!EntrancePos_) {
+      return std::nullopt;
+    }
+    return Coord3D{Pos_.X + EntrancePos_->X, Pos_.Y + EntrancePos_->Y, Pos_.Layer};
+  }
 
   // void Register(const Mod &, GameplaySystems &) noexcept {}
 
@@ -172,12 +178,26 @@ public:
     return true;
   }
 
-  Tile &GetTile(Dim Layer, Dim X, Dim Y) noexcept {
-    return Tiles_[Width_ * Height_ * Layer + Y * Width_ + X];
+  size_t Coord3DToIndex(Coord3D Coord) const noexcept {
+    return Width_ * Height_ * Coord.Layer + Coord.Y * Width_ + Coord.X;
   }
+
+  Coord3D IndexToCoord3D(size_t Index) const noexcept {
+    Size Layer = Index / (Width_ * Height_);
+    Size Y = (Index - Layer * Width_ * Height_) / Height_;
+    Size X = Index - Layer * Width_ * Height_ - Y * Width_;
+    return {X, Y, Layer};
+  }
+
+  bool IsValid(Coord3D Coord) const noexcept {
+    return Coord.X < Width_ && Coord.Y < Height_ && Coord.Layer < Layers_;
+  }
+  Tile &GetTile(Dim Layer, Dim X, Dim Y) noexcept { return GetTile(Coord3D{X, Y, Layer}); }
   const Tile &GetTile(Dim Layer, Dim X, Dim Y) const noexcept {
-    return Tiles_[Width_ * Height_ * Layer + Y * Width_ + X];
+    return GetTile(Coord3D{X, Y, Layer});
   }
+  const Tile &GetTile(Coord3D Coord) const noexcept { return Tiles_[Coord3DToIndex(Coord)]; }
+  Tile &GetTile(Coord3D Coord) noexcept { return Tiles_[Coord3DToIndex(Coord)]; }
 
   auto GetObjects() noexcept { return MakeRange(MapObjects_.begin(), MapObjects_.end()); }
   auto GetObjects() const noexcept { return MakeRange(MapObjects_.begin(), MapObjects_.end()); }
@@ -187,6 +207,7 @@ public:
   }
 
   MapObject &GetObject(Id<MapObject> Id) noexcept { return MapObjects_.GetObjectById(Id); }
+  MapObject *TryGetObject(Id<MapObject> Id) noexcept { return MapObjects_.TryGetObjectById(Id); }
 
   std::span<const Id<MapObject>> GetObjectsOnLayer(Dim Layer) const noexcept {
     return ObjectsByLayer_[Layer];
@@ -223,20 +244,6 @@ private:
 
   // SmallVector<Id<MapObject>, 8> Capitals_;
   SmallVector<Id<MapObject>, 32> Towns_;
-};
-
-class Path {
-public:
-  using Storage = std::vector<Coord3D>;
-
-  Path() noexcept = default;
-
-  const Storage &GetPoints() const noexcept { return Points_; }
-  void AddPoint(Coord3D Pt) noexcept { Points_.push_back(Pt); }
-
-private:
-  Storage Points_;
-  Size Position_ = 0;
 };
 
 } // namespace NotAGame

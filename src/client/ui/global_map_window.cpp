@@ -3,10 +3,13 @@
 #include "capital_view_window.h"
 #include "new_turn_dialog.h"
 
+#include "util/map_utils.h"
+
 #include <cmath>
 #include <fmt/format.h>
 
 #include <QMouseEvent>
+#include <QPainterPath>
 #include <QScrollBar>
 
 #include <QtDebug>
@@ -103,6 +106,44 @@ void GlobalMapWindow::DrawObject(QPainter &Painter, const MapObject &Object) noe
   }
 }
 
+void GlobalMapWindow::DrawPath(QPainter &Painter, const Path &Path) noexcept {
+  const auto H = GlobalMap_.GetHeight();
+  float Coef = 0.2;
+  Size Cost = 0;
+  bool IsFirst = true;
+  for (const auto &Pt : Path.Waypoints) {
+
+    if (IsFirst) {
+      IsFirst = false;
+    } else {
+      Cost += Pt.Cost;
+    }
+    float Left = kBorderWidth + (H + Pt.Coord.X - Pt.Coord.Y - Coef) * kDX,
+          Top = kBorderWidth + (Pt.Coord.X + Pt.Coord.Y - Coef + 1) * kDY;
+    { // Path mark.
+      Painter.setPen(QPen{Qt::white, 2});
+      Painter.setBrush(QBrush{Qt::blue});
+      Painter.drawEllipse(Left, Top, 2 * Coef * kDX, 2 * Coef * kDY);
+    }
+
+    { // Path cost.
+      QPainterPath FontPath;
+
+      QFont Font;
+      Font.setFamily("EBGaramond");
+      Font.setPixelSize(18);
+      Font.setBold(true);
+
+      FontPath.addText(Left + 3 * Coef * kDX, Top, Font, QString{"%1"}.arg(Cost));
+
+      Painter.setPen(Qt::black);
+      Painter.setBrush(Qt::white);
+
+      Painter.drawPath(FontPath);
+    }
+  }
+}
+
 std::optional<QPoint> GlobalMapWindow::GetMapCoord(QPoint MousePos) const noexcept {
   int MapViewX = MousePos.x() + UI_->GlobalMapView->horizontalScrollBar()->value();
   int MapViewY = MousePos.y() + UI_->GlobalMapView->verticalScrollBar()->value();
@@ -122,6 +163,9 @@ void GlobalMapWindow::DrawMap() noexcept {
   MapPixmap_.fill(Qt::black);
   QPainter Painter{&MapPixmap_};
   Painter.setRenderHint(QPainter::Antialiasing, true);
+  Painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+  Painter.setRenderHints(QPainter::TextAntialiasing, true);
+
   for (Size X = 0, XE = GlobalMap_.GetWidth(); X < XE; ++X) {
     for (Size Y = 0, YE = GlobalMap_.GetHeight(); Y < YE; ++Y) {
       DrawTile(Painter, X, Y);
@@ -129,6 +173,11 @@ void GlobalMapWindow::DrawMap() noexcept {
   }
   for (auto ObjId : GlobalMap_.GetObjectsOnLayer(CurrentLayer_)) {
     DrawObject(Painter, GlobalMap_.GetObject(ObjId));
+  }
+  if (const auto *SelectedSquad = std::get_if<Id<Squad>>(&SelectedObject_)) {
+    if (const auto *Path = Utils::MapFindPtr(SquadPath_, *SelectedSquad)) {
+      DrawPath(Painter, *Path);
+    }
   }
   Scene_.addPixmap(MapPixmap_);
   UI_->GlobalMapView->setScene(&Scene_);
@@ -194,11 +243,14 @@ void GlobalMapWindow::OnMapMouseUp(QMouseEvent *Event) {
         HandleObjectClick(*MapCoord, Tile.Object_);
       } else if (Tile.Squad_.IsValid()) {
         HandleSquadClick(*MapCoord, Tile.Squad_);
+      } else {
+        HandleTileClick(*MapCoord, Tile);
       }
     }
   }
   MapMouseState_.IsDrag = false;
   MapMouseState_.IsMouseDown = false;
+  DrawMap();
 }
 
 bool GlobalMapWindow::TrySelectSquad(Id<Squad> SquadId) noexcept {
@@ -241,6 +293,22 @@ bool GlobalMapWindow::TrySelect(QPoint MapCoord, Id<MapObject> ObjectId) noexcep
   default:
     return false;
   }
+}
+
+void GlobalMapWindow::HandleTileClick(QPoint MapCoord, const Tile &Tile) noexcept {
+  const auto *SelectedSquad = std::get_if<Id<Squad>>(&SelectedObject_);
+  if (!SelectedSquad) {
+    return;
+  }
+  const auto &Systems = State_.SavedState.Map.Systems;
+
+  const auto &Squad = Systems.Squads.GetComponent(*SelectedSquad);
+  auto Path = TryBuildPath(
+      Squad.Position,
+      Coord3D{static_cast<Size>(MapCoord.x()), static_cast<Size>(MapCoord.y()), CurrentLayer_},
+      State_.SavedState.Map.GlobalMap, Systems, Mod_, Squad.GetLeader());
+  assert(Path);
+  SquadPath_[*SelectedSquad] = std::move(*Path);
 }
 
 void GlobalMapWindow::HandleSquadClick(QPoint MapCoord, Id<Squad> SquadId) noexcept {

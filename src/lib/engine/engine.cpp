@@ -131,7 +131,8 @@ const StartGameResponse &Engine::StartGame(LobbyPlayerId LobbyPlayerId) noexcept
 
 ErrorOr<HireLeaderResponse> Engine::HireLeader(PlayerId PlayerId,
                                                Id<GuardComponent> GuardComponentId,
-                                               Id<Unit> UnitPresetId, Coord GridPosition) noexcept {
+                                               MapObjectId MapObjectId, Id<Unit> UnitPresetId,
+                                               Coord GridPosition) noexcept {
   auto &State = std::get<OnlineGameState>(State_);
   auto &PlayerIdx = State.SavedState.CurrentPlayerIdx;
   auto CurrentPlayerId = State.Players[PlayerIdx].MapId;
@@ -143,6 +144,11 @@ ErrorOr<HireLeaderResponse> Engine::HireLeader(PlayerId PlayerId,
   const auto &Unit = Mod_.GetUnitPresets().GetObjectById(UnitPresetId);
   if (Unit.LeaderDataId.IsInvalid()) {
     return Status::Error(ErrorCode::WrongState, "Unit is not a leader!");
+  }
+
+  const auto *MapObject = this->MapState_.GlobalMap.TryGetObject(MapObjectId);
+  if (!MapObject || !MapObject->GetEntrancePos()) {
+    return Status::Error(ErrorCode::WrongState, "Bad map object");
   }
 
   auto &PlayerState = State.SavedState.PlayerStates[PlayerId];
@@ -168,6 +174,8 @@ ErrorOr<HireLeaderResponse> Engine::HireLeader(PlayerId PlayerId,
   AddedUnit.LeaderDataId = LeaderComponent;
 
   Squad NewSquad{Mod_.GetGridSettings(), UnitId, PlayerId};
+  NewSquad.Position = *MapObject->GetEntrancePosAbsolute();
+
   const auto GridAdd = NewSquad.GetGrid().TrySetUnit(UnitId, &AddedUnit, GridPosition);
   assert(GridAdd);
 

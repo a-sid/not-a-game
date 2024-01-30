@@ -81,12 +81,9 @@ public:
   Id<Unit> GetUnit(Dim X, Dim Y) const noexcept { return Grid_.GetUnit(X, Y); }
   Id<Unit> GetLeader() const noexcept { return Leader_; }
 
-  /*auto GetUnits() const noexcept {
-    return Units_ | std::views::transform([this](auto Id) { return Registry_.GetObjectById(Id); });
-  }*/
-
   Id<Squad> ComponentId;
   Id<Player> Player_;
+  Coord3D Position;
 
 private:
   Grid Grid_;

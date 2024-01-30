@@ -103,6 +103,8 @@ add_library(engine STATIC
   src/lib/engine/engine.h
   src/lib/engine/event.h
   src/lib/engine/map_view.h
+  src/lib/engine/path.cpp
+  src/lib/engine/path.h
   src/lib/engine/player.h
   src/lib/engine/player_state.h
 )
