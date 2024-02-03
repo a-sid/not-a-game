@@ -23,24 +23,7 @@ void AddLinks(Edges &Edges, Weights &Weights, const GlobalMap &Map, Dim X, Dim Y
   const Coord3D From{X, Y, Z};
   // TODO: consider leader perks.
   const auto &Tile = Map.GetTile(Z, X, Y);
-  if (Tile.Object_.IsInvalid()) {
-    // Normal tile.
-    for (const auto Neighboor :
-         {Coord3D{X - 1, Y - 1, Z}, Coord3D{X, Y - 1, Z}, Coord3D{X + 1, Y - 1, Z},
-          Coord3D{X - 1, Y, Z}, Coord3D{X + 1, Y, Z}, Coord3D{X - 1, Y + 1, Z},
-          Coord3D{X, Y + 1, Z}, Coord3D{X + 1, Y + 1, Z}}) {
-      if (!Map.IsValid(Neighboor)) {
-        continue;
-      }
-      const auto &NeighTile = Map.GetTile(Neighboor);
-      if (NeighTile.Object_.IsInvalid()) {
-        Edges.push_back({Map.Coord3DToIndex(From), Map.Coord3DToIndex(Neighboor)});
-        Weights.push_back(M.GetTerrains().GetObjectById(NeighTile.Terrain_).GetBaseCost());
-        continue;
-      }
-    }
-    return;
-  }
+
   for (const auto Neighboor :
        {Coord3D{X - 1, Y - 1, Z}, Coord3D{X, Y - 1, Z}, Coord3D{X + 1, Y - 1, Z},
         Coord3D{X - 1, Y, Z}, Coord3D{X + 1, Y, Z}, Coord3D{X - 1, Y + 1, Z}, Coord3D{X, Y + 1, Z},
@@ -51,8 +34,10 @@ void AddLinks(Edges &Edges, Weights &Weights, const GlobalMap &Map, Dim X, Dim Y
     const auto &NeighTile = Map.GetTile(Neighboor);
     if (NeighTile.Object_.IsInvalid()) {
       Edges.push_back({Map.Coord3DToIndex(From), Map.Coord3DToIndex(Neighboor)});
-      Weights.push_back(0);
-      continue;
+      const auto Weight = Tile.Object_.IsValid()
+                              ? 0
+                              : M.GetTerrains().GetObjectById(NeighTile.Terrain_).GetBaseCost();
+      Weights.push_back(Weight);
     }
   }
 }
@@ -83,8 +68,6 @@ std::optional<Path> TryBuildPath(Coord3D From, Coord3D To, const GlobalMap &Map,
 
   // graph created from the list of edges
   Graph G(Edges.data(), Edges.data() + Edges.size(), Weights.data(), NumNodes);
-  // create the property_map from edges to weights
-  property_map<Graph, edge_weight_t>::type Weightmap = get(edge_weight, G);
 
   // create vectors to store the predecessors (p) and the distances from the root (d)
   std::vector<Vertex> Pred(num_vertices(G));
