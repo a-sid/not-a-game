@@ -112,18 +112,16 @@ void GlobalMapWindow::DrawPath(QPainter &Painter, const Path &Path) noexcept {
   Size Cost = 0;
   bool IsFirst = true;
   for (const auto &Pt : Path.Waypoints) {
-
-    if (IsFirst) {
-      IsFirst = false;
-    } else {
-      Cost += Pt.Cost;
-    }
     float Left = kBorderWidth + (H + Pt.Coord.X - Pt.Coord.Y - Coef) * kDX,
           Top = kBorderWidth + (Pt.Coord.X + Pt.Coord.Y - Coef + 1) * kDY;
     { // Path mark.
       Painter.setPen(QPen{Qt::white, 2});
       Painter.setBrush(QBrush{Qt::blue});
       Painter.drawEllipse(Left, Top, 2 * Coef * kDX, 2 * Coef * kDY);
+    }
+    if (IsFirst) {
+      IsFirst = false;
+      continue;
     }
 
     { // Path cost.
@@ -134,7 +132,7 @@ void GlobalMapWindow::DrawPath(QPainter &Painter, const Path &Path) noexcept {
       Font.setPixelSize(18);
       Font.setBold(true);
 
-      FontPath.addText(Left + 3 * Coef * kDX, Top, Font, QString{"%1"}.arg(Cost));
+      FontPath.addText(Left + 3 * Coef * kDX, Top, Font, QString{"%1"}.arg(Pt.Cost));
 
       Painter.setPen(Qt::black);
       Painter.setBrush(Qt::white);

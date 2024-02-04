@@ -96,8 +96,9 @@ std::optional<Path> TryBuildPath(Coord3D From, Coord3D To, const GlobalMap &Map,
       break;
     }
     const auto &Tile = Map.GetTile(Coord);
-    P.Waypoints.back().Cost = M.GetTerrains().GetObjectById(Tile.Terrain_).GetBaseCost();
-    Coord = Map.IndexToCoord3D(Pred[Map.Coord3DToIndex(Coord)]);
+    auto TileVertexIndex = Map.Coord3DToIndex(Coord);
+    P.Waypoints.back().Cost = Distances[TileVertexIndex];
+    Coord = Map.IndexToCoord3D(Pred[TileVertexIndex]);
   }
 
   std::reverse(P.Waypoints.begin(), P.Waypoints.end());
