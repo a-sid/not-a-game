@@ -10,6 +10,8 @@
 
 namespace NotAGame {
 
+struct GuardComponent;
+
 struct UnitPosition {
   Id<Unit> UnitId;
   Coord Position;
@@ -82,6 +84,7 @@ public:
   Id<Unit> GetLeader() const noexcept { return Leader_; }
 
   Id<Squad> ComponentId;
+  Id<GuardComponent> GuardId;
   Id<Player> Player_;
   Coord3D Position;
 

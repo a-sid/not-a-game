@@ -175,6 +175,7 @@ ErrorOr<HireLeaderResponse> Engine::HireLeader(PlayerId PlayerId,
 
   Squad NewSquad{Mod_.GetGridSettings(), UnitId, PlayerId};
   NewSquad.Position = *MapObject->GetEntrancePosAbsolute();
+  NewSquad.GuardId = GuardComponentId;
 
   const auto GridAdd = NewSquad.GetGrid().TrySetUnit(UnitId, &AddedUnit, GridPosition);
   assert(GridAdd);
@@ -258,6 +259,75 @@ ErrorOr<HireUnitResponse> Engine::HireUnit(PlayerId PlayerId, Id<GuardComponent>
   // TODO: outstanding updates.
 
   return HireUnitResponse{.UnitId = UnitId};
+}
+
+ErrorOr<MoveSquadResponse> Engine::MoveSquad(PlayerId PlayerId, Id<Squad> SquadId,
+                                             const Path &Path) noexcept {
+  auto &State = std::get<OnlineGameState>(State_);
+  auto &PlayerIdx = State.SavedState.CurrentPlayerIdx;
+  auto CurrentPlayerId = State.Players[PlayerIdx].MapId;
+
+  if (PlayerId != CurrentPlayerId) {
+    return Status::Error(ErrorCode::WrongPlayer, "Not this player's turn!");
+  }
+
+  auto &Systems = State.SavedState.Map.Systems;
+  auto *Squad = Systems.Squads.GetComponentOrNull(SquadId);
+  if (!Squad) {
+    return Status::Error(ErrorCode::WrongState, "Non-existing squad id!");
+  }
+
+  auto *LeaderUnit = Systems.Units.GetComponentOrNull(Squad->GetLeader());
+  if (!LeaderUnit) {
+    return Status::Error(ErrorCode::WrongState, "Non-existing leader unit id!");
+  }
+
+  auto *LeaderComponent = Systems.Leaders.GetComponentOrNull(LeaderUnit->LeaderDataId);
+  if (!LeaderComponent) {
+    return Status::Error(ErrorCode::WrongState, "Non-existing leader data id!");
+  }
+
+  if (Path.Waypoints.size() < 2) {
+    return Status::Error(ErrorCode::WrongState, "Empty path!");
+  }
+  if (Path.Waypoints[0].Coord != Squad->Position) {
+    return Status::Error(ErrorCode::WrongState, "Wrong start point!");
+  }
+
+  auto IsReachable = [](Coord3D From, Coord3D To) {
+    auto DX = std::max(From.X, To.X) - std::min(From.X, To.X);
+    auto DY = std::max(From.Y, To.Y) - std::min(From.Y, To.Y);
+    return DX <= 1 && DY <= 1;
+  };
+  auto MovePointsRemaining = LeaderComponent->Steps.GetValue();
+
+  // Dry run.
+  size_t Steps = 0;
+  for (size_t I = 1; I < Path.Waypoints.size(); ++I, ++Steps) {
+    if (MovePointsRemaining == 0) {
+      break;
+    }
+    if (!IsReachable(Path.Waypoints[I - 1].Coord, Path.Waypoints[I].Coord)) {
+      return Status::Error(ErrorCode::WrongState, "Unreachable jump");
+    }
+    auto Cost = ComputeMoveCost(Path.Waypoints[I - 1].Coord, Path.Waypoints[I].Coord,
+                                MapState_.GlobalMap, Mod_);
+    MovePointsRemaining -= std::min(MovePointsRemaining, Cost);
+  }
+
+  if (Squad->GuardId.IsValid()) { // Leaving.
+    auto &Guard = Systems.Guards.GetComponent(Squad->GuardId);
+    Guard.SquadId = NullId;
+  } else {
+    MapState_.GlobalMap.GetTile(Squad->Position).Squad_ = NullId;
+  }
+
+  Squad->Position = Path.Waypoints[Steps].Coord;
+  MapState_.GlobalMap.GetTile(Squad->Position).Squad_ = SquadId;
+  LeaderComponent->Steps.SetValue(MovePointsRemaining);
+
+  return MoveSquadResponse{.NumSteps = static_cast<Size>(Steps),
+                           .MovePointsRemaining = MovePointsRemaining};
 }
 
 } // namespace NotAGame

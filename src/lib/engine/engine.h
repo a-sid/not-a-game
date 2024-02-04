@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/event.h"
+#include "engine/path.h"
 #include "engine/player.h"
 #include "entities/global_map.h"
 #include "state/state.h"
@@ -39,6 +40,11 @@ struct HireUnitResponse {
   Id<Unit> UnitId;
 };
 
+struct MoveSquadResponse {
+  Size NumSteps;
+  Size MovePointsRemaining;
+};
+
 class EventListener {
 public:
   virtual void OnPlayerNewTurn(const NewTurnEvent &Event) noexcept = 0;
@@ -64,6 +70,9 @@ public:
                                          Coord GridPosition) noexcept;
   ErrorOr<HireUnitResponse> HireUnit(PlayerId PlayerId, Id<GuardComponent> GuardComponentId,
                                      Id<Unit> UnitPresetId, Coord GridPosition) noexcept;
+
+  ErrorOr<MoveSquadResponse> MoveSquad(PlayerId PlayerId, Id<Squad> SquadId,
+                                       const Path &Path) noexcept;
 
   Status EndTurn(const Player &Player) noexcept;
 

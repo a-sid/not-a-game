@@ -18,6 +18,13 @@ using Edge = std::pair<Size, Size>;
 using Edges = std::vector<Edge>;
 using Weights = std::vector<Size>;
 
+Size ComputeMoveCost(Coord3D From, Coord3D To, const GlobalMap &Map, const Mod &M) noexcept {
+  const auto &Tile = Map.GetTile(From);
+  const auto &NeighTile = Map.GetTile(To);
+  return Tile.Object_.IsValid() ? 0
+                                : M.GetTerrains().GetObjectById(NeighTile.Terrain_).GetBaseCost();
+}
+
 void AddLinks(Edges &Edges, Weights &Weights, const GlobalMap &Map, Dim X, Dim Y, Dim Z,
               const GameplaySystems &Systems, const Mod &M, const Unit &LeaderUnit) noexcept {
   const Coord3D From{X, Y, Z};
@@ -34,9 +41,7 @@ void AddLinks(Edges &Edges, Weights &Weights, const GlobalMap &Map, Dim X, Dim Y
     const auto &NeighTile = Map.GetTile(Neighboor);
     if (NeighTile.Object_.IsInvalid()) {
       Edges.push_back({Map.Coord3DToIndex(From), Map.Coord3DToIndex(Neighboor)});
-      const auto Weight = Tile.Object_.IsValid()
-                              ? 0
-                              : M.GetTerrains().GetObjectById(NeighTile.Terrain_).GetBaseCost();
+      const auto Weight = ComputeMoveCost(From, Neighboor, Map, M);
       Weights.push_back(Weight);
     }
   }

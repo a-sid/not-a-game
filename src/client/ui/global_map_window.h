@@ -64,15 +64,20 @@ private:
   void DrawMap() noexcept;
   void DrawRect(QPainter &Painter, QPen Pen, QBrush Brush, int X, int Y, int Width,
                 int Height) noexcept;
-  void DrawTile(QPainter &Painter, int X, int Y) noexcept;
+  void DrawTile(QPainter &Painter, int X, int Y,
+                std::vector<NotAGame::Id<NotAGame::Squad>> &Squads) noexcept;
   void DrawObject(QPainter &Painter, const NotAGame::MapObject &Object) noexcept;
   void DrawPath(QPainter &Painter, const NotAGame::Path &Path) noexcept;
+  void DrawSquads(QPainter &Painter,
+                  const std::vector<NotAGame::Id<NotAGame::Squad>> &Squads) noexcept;
 
   void HandleTileClick(QPoint MapCoord, const NotAGame::Tile &Tile) noexcept;
   void HandleObjectClick(QPoint MapCoord, NotAGame::Id<NotAGame::MapObject> Object) noexcept;
   void HandleSquadClick(QPoint MapCoord, NotAGame::Id<NotAGame::Squad> Squad) noexcept;
   bool TrySelect(QPoint MapCoord, NotAGame::Id<NotAGame::MapObject> ObjectId) noexcept;
   bool TrySelectSquad(NotAGame::Id<NotAGame::Squad> SquadId) noexcept;
+
+  void DoSquadWalk(NotAGame::Id<NotAGame::Squad> SquadId, NotAGame::Path &Path) noexcept;
 
   std::optional<QPoint> GetMapCoord(QPoint MousePos) const noexcept;
 
@@ -86,7 +91,7 @@ private:
   NotAGame::Player &Player_;
   std::vector<QBrush> Brushes_;
 
-  std::unordered_map<NotAGame::Id<NotAGame::Squad>, NotAGame::Path> SquadPath_;
+  std::unordered_map<NotAGame::Id<NotAGame::Squad>, std::optional<NotAGame::Path>> SquadPath_;
 
   QPixmap MapPixmap_;
 

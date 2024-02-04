@@ -80,8 +80,12 @@ void GlobalMapWindow::DrawRect(QPainter &Painter, QPen Pen, QBrush Brush, int X,
   Painter.restore();
 }
 
-void GlobalMapWindow::DrawTile(QPainter &Painter, int X, int Y) noexcept {
+void GlobalMapWindow::DrawTile(QPainter &Painter, int X, int Y,
+                               std::vector<Id<Squad>> &Squads) noexcept {
   const auto &Tile = GlobalMap_.GetTile(CurrentLayer_, X, Y);
+  if (Tile.Squad_.IsValid()) {
+    Squads.push_back(Tile.Squad_);
+  }
   QBrush Brush =
       Tile.Terrain_.IsValid() ? Brushes_[Tile.Terrain_] : QBrush{Qt::gray, Qt::SolidPattern};
   DrawRect(Painter, QPen{Qt::yellow}, Brush, X, Y, 1, 1);
@@ -103,6 +107,22 @@ void GlobalMapWindow::DrawObject(QPainter &Painter, const MapObject &Object) noe
   }
   default:
     assert(false && "Unsupported kind!");
+  }
+}
+
+void GlobalMapWindow::DrawSquads(QPainter &Painter, const std::vector<Id<Squad>> &Squads) noexcept {
+  const auto &Systems = State_.SavedState.Map.Systems;
+  const auto H = GlobalMap_.GetHeight();
+  float Coef = 0.4;
+  for (const auto SquadId : Squads) {
+    const auto &Squad = Systems.Squads.GetComponent(SquadId);
+    float Left = kBorderWidth + (H + Squad.Position.X - Squad.Position.Y - Coef) * kDX,
+          Top = kBorderWidth + (Squad.Position.X + Squad.Position.Y - Coef + 1) * kDY;
+    { // Path mark.
+      Painter.setPen(QPen{Qt::white, 2});
+      Painter.setBrush(QBrush{Qt::magenta});
+      Painter.drawEllipse(Left, Top, 2 * Coef * kDX, 2 * Coef * kDY);
+    }
   }
 }
 
@@ -164,17 +184,19 @@ void GlobalMapWindow::DrawMap() noexcept {
   Painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
   Painter.setRenderHints(QPainter::TextAntialiasing, true);
 
+  std::vector<Id<Squad>> Squads;
   for (Size X = 0, XE = GlobalMap_.GetWidth(); X < XE; ++X) {
     for (Size Y = 0, YE = GlobalMap_.GetHeight(); Y < YE; ++Y) {
-      DrawTile(Painter, X, Y);
+      DrawTile(Painter, X, Y, Squads);
     }
   }
   for (auto ObjId : GlobalMap_.GetObjectsOnLayer(CurrentLayer_)) {
     DrawObject(Painter, GlobalMap_.GetObject(ObjId));
   }
+  DrawSquads(Painter, Squads);
   if (const auto *SelectedSquad = std::get_if<Id<Squad>>(&SelectedObject_)) {
-    if (const auto *Path = Utils::MapFindPtr(SquadPath_, *SelectedSquad)) {
-      DrawPath(Painter, *Path);
+    if (const auto *Path = Utils::MapFindPtr(SquadPath_, *SelectedSquad); Path && *Path) {
+      DrawPath(Painter, **Path);
     }
   }
   Scene_.addPixmap(MapPixmap_);
@@ -203,7 +225,7 @@ void GlobalMapWindow::OnMapMouseMove(QMouseEvent *Event) {
   }
   const auto MapX = MapCoord->x(), MapY = MapCoord->y();
 
-  const auto W = GlobalMap_.GetWidth(), H = GlobalMap_.GetHeight();
+  const auto H = GlobalMap_.GetHeight();
   float Coef = 0.6;
   float Left = kBorderWidth + (H + MapX - MapY - Coef) * kDX,
         Top = kBorderWidth + (MapX + MapY - Coef + 1) * kDY;
@@ -298,13 +320,18 @@ void GlobalMapWindow::HandleTileClick(QPoint MapCoord, const Tile &Tile) noexcep
   if (!SelectedSquad) {
     return;
   }
+  Coord3D Target{static_cast<Size>(MapCoord.x()), static_cast<Size>(MapCoord.y()), CurrentLayer_};
+  auto &CurrentPath = SquadPath_[*SelectedSquad];
+  if (CurrentPath && CurrentPath->Target == Target) {
+    DoSquadWalk(*SelectedSquad, *CurrentPath);
+    return;
+  }
+
   const auto &Systems = State_.SavedState.Map.Systems;
 
   const auto &Squad = Systems.Squads.GetComponent(*SelectedSquad);
-  auto Path = TryBuildPath(
-      Squad.Position,
-      Coord3D{static_cast<Size>(MapCoord.x()), static_cast<Size>(MapCoord.y()), CurrentLayer_},
-      State_.SavedState.Map.GlobalMap, Systems, Mod_, Squad.GetLeader());
+  auto Path = TryBuildPath(Squad.Position, Target, State_.SavedState.Map.GlobalMap, Systems, Mod_,
+                           Squad.GetLeader());
   assert(Path);
   SquadPath_[*SelectedSquad] = std::move(*Path);
 }
@@ -364,6 +391,20 @@ void GlobalMapWindow::HandleObjectClick(QPoint MapCoord, Id<MapObject> ObjectId)
     if (SelectedObject_.index() == 0) {
       return;
     }
+  }
+}
+
+void GlobalMapWindow::DoSquadWalk(Id<Squad> SquadId, Path &Path) noexcept {
+  std::cerr << "Squad walk\n";
+  auto Response = Engine_.MoveSquad(Player_.MapId, SquadId, Path);
+  assert(Response.IsSuccess());
+  std::cerr << Response.GetValue().MovePointsRemaining << " " << Response.GetValue().NumSteps
+            << '\n';
+
+  if (Response.GetValue().NumSteps == Path.Waypoints.size() - 1) {
+    SquadPath_[SquadId].reset();
+  } else {
+    Path.Walk(Response.GetValue().NumSteps);
   }
 }
 
