@@ -326,6 +326,7 @@ ErrorOr<MoveSquadResponse> Engine::MoveSquad(PlayerId PlayerId, Id<Squad> SquadI
   MapState_.GlobalMap.GetTile(Squad->Position).Squad_ = SquadId;
   LeaderComponent->Steps.SetValue(MovePointsRemaining);
 
+  // TODO: outstanding updates.
   return MoveSquadResponse{.NumSteps = static_cast<Size>(Steps),
                            .MovePointsRemaining = MovePointsRemaining};
 }
