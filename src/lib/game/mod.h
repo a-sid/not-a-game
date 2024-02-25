@@ -43,8 +43,6 @@ public:
   const auto &GetSpells() const noexcept { return Spells_; }
   const auto &GetFractions() const noexcept { return Fractions_; }
   const auto &GetLords() const noexcept { return Lords_; }
-  const auto &GetUnitDescriptors() const noexcept { return UnitDescriptors_; }
-  const auto &GetLeaderDescriptors() const noexcept { return LeaderDescriptors_; }
   const auto &GetLeaderPresets() const noexcept { return LeaderPresets_; }
   const auto &GetUnitPresets() const noexcept { return UnitPresets_; }
   const auto &GetIcons() const noexcept { return Icons_; }
@@ -66,9 +64,6 @@ private:
 
   Utils::Registry<Terrain, 8> Terrains_;
   ResourceRegistry Resources_;
-  // To be deleted in favor of presets.
-  Utils::Registry<UnitDescriptor> UnitDescriptors_;
-  Utils::Registry<LeaderDescriptor> LeaderDescriptors_;
 
   Utils::Registry<Unit> UnitPresets_;
   Utils::Registry<LeaderData> LeaderPresets_;
