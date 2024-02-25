@@ -37,18 +37,18 @@ template <typename T, size_t PageSize = 64> class GameplaySystem {
 public:
   using TurnableComponent = std::optional<T>;
 
-  Id<T> AddComponent(T &&Component) noexcept {
+  T &AddComponent(T &&Component) noexcept {
     const auto ComponentId = Components_.size();
-    Components_.push_back(TurnableComponent{std::move(Component)});
-    Components_.back()->ComponentId = ComponentId;
-    return ComponentId;
+    auto &NewComponent = Components_.emplace_back(std::move(Component));
+    NewComponent->ComponentId = ComponentId;
+    return *NewComponent;
   }
 
-  Id<T> AddComponent(const T &Component) noexcept {
+  T &AddComponent(const T &Component) noexcept {
     const auto ComponentId = Components_.size();
-    Components_.push_back(TurnableComponent{Component});
-    Components_.back()->ComponentId = ComponentId;
-    return ComponentId;
+    auto &NewComponent = Components_.emplace_back(Component);
+    NewComponent->ComponentId = ComponentId;
+    return *NewComponent;
   }
 
   void RemoveComponent(Id<T> ComponentId) noexcept { Components_[ComponentId].reset(); }
@@ -84,11 +84,11 @@ public:
 
   explicit ByPlayerSystem(Size NumPlayers) noexcept { ComponentsByPlayer_.resize(NumPlayers); }
 
-  Id<T> AddComponent(const T &Component) noexcept {
+  T &AddComponent(const T &Component) noexcept {
     auto PlayerId = Component.Player;
-    auto ComponentId = Parent::AddComponent(Component);
-    ComponentsByPlayer_[PlayerId].insert(ComponentId);
-    return ComponentId;
+    auto &NewComponent = Parent::AddComponent(Component);
+    ComponentsByPlayer_[PlayerId].insert(NewComponent.ComponentId);
+    return NewComponent;
   }
 
   void RemoveComponent(Id<T> ComponentId) noexcept {

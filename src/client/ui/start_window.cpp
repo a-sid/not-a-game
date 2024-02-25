@@ -43,10 +43,10 @@ MapState StartWindow::CreateMap() noexcept {
   auto &Cap = M.GetObject(CapitalObjId.GetValue());
 
   GuardComponent CapitalGuard{.SquadId = {}, .Owner = 0};
-  const auto CapitalGuardId = Systems.Guards.AddComponent(CapitalGuard);
+  auto &AddedGuard = Systems.Guards.AddComponent(CapitalGuard);
 
   CapitalComponent Comp{.FractionId = Mod_.GetFractions().GetId("mountain_clans"),
-                        .GuardId = CapitalGuardId,
+                        .GuardId = AddedGuard.ComponentId,
                         .PlayerId = 0};
 
   Comp.ObjectId = CapitalObjId.GetValue();
@@ -54,7 +54,7 @@ MapState StartWindow::CreateMap() noexcept {
   Cap.CapitalTrait = M.AddCapital(Comp);
   VisibilityRange CapRange{
       .Player = 0, .Origin = Cap.GetPosition(), .OriginSize = Cap.GetSize(), .Radius = 7};
-  Cap.VisibilityRangeTrait = Systems.Visibility.AddComponent(CapRange);
+  Cap.VisibilityRangeTrait = Systems.Visibility.AddComponent(CapRange).ComponentId;
 
   const auto GoldId = Mod_.GetResources().GetId("gold");
   const auto RuneManaId = Mod_.GetResources().GetId("gold");
@@ -63,27 +63,26 @@ MapState StartWindow::CreateMap() noexcept {
   R.SetAmountByName("mana_runes", 25);
 
   ResourceSource CapitalIncome{.Income = R, .Player = 0};
-  Cap.ResourceTrait = Systems.Resources.AddComponent(CapitalIncome);
-  Cap.Guard = CapitalGuardId;
+  Cap.ResourceTrait = Systems.Resources.AddComponent(CapitalIncome).ComponentId;
+  Cap.Guard = AddedGuard.ComponentId;
 
   const auto &GoblinPreset = Mod_.GetUnitPresets().GetObjectByKey("goblin");
-  auto GoblinUnitId = Systems.Units.AddComponent(GoblinPreset);
-  Unit &Goblin = Systems.Units.GetComponent(GoblinUnitId);
+  Unit &Goblin = Systems.Units.AddComponent(GoblinPreset);
 
   LeaderData GoblinData;
   GoblinData.Leadership = SizeTrait{3};
   GoblinData.Leadership.SetValue(1);
   GoblinData.Name = "Angry goblin";
   GoblinData.Steps = SizeTrait{10};
-  auto LeaderId = Systems.Leaders.AddComponent(std::move(GoblinData));
+  auto LeaderId = Systems.Leaders.AddComponent(std::move(GoblinData)).ComponentId;
   Goblin.LeaderDataId = LeaderId;
 
-  Squad S{Mod_.GetGridSettings(), GoblinUnitId, 0};
+  Squad S{Mod_.GetGridSettings(), Goblin.ComponentId, 0};
   S.Position = Coord3D{15, 15, 0};
-  assert(S.GetGrid().TrySetUnit(GoblinUnitId, &Goblin, Coord{1, 1}));
+  assert(S.GetGrid().TrySetUnit(Goblin.ComponentId, &Goblin, Coord{1, 1}));
 
-  auto SquadId = Systems.Squads.AddComponent(S);
-  M.GetTile(0, 15, 15).Squad_ = SquadId;
+  auto &Squad = Systems.Squads.AddComponent(S);
+  M.GetTile(0, 15, 15).Squad_ = Squad.ComponentId;
 
   return MapState{.GlobalMap = std::move(M), .Systems = std::move(Systems)};
 }

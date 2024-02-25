@@ -166,27 +166,27 @@ ErrorOr<HireLeaderResponse> Engine::HireLeader(PlayerId PlayerId,
 
   // Copy preset to the state as a new unit.
   const auto &Leader = Mod_.GetLeaderPresets().GetObjectById(Unit.LeaderDataId);
-  auto LeaderComponent = Systems.Leaders.AddComponent(Leader);
-  auto &AddedLeader = Systems.Leaders.GetComponent(LeaderComponent);
+  auto &AddedLeader = Systems.Leaders.AddComponent(Leader);
   AddedLeader.Name = "Герой";
-  auto UnitId = Systems.Units.AddComponent(Unit);
-  auto &AddedUnit = Systems.Units.GetComponent(UnitId);
-  AddedUnit.LeaderDataId = LeaderComponent;
+  auto &AddedUnit = Systems.Units.AddComponent(Unit);
+  AddedUnit.LeaderDataId = AddedLeader.ComponentId;
 
-  Squad NewSquad{Mod_.GetGridSettings(), UnitId, PlayerId};
+  Squad NewSquad{Mod_.GetGridSettings(), AddedUnit.ComponentId, PlayerId};
   NewSquad.Position = *MapObject->GetEntrancePosAbsolute();
   NewSquad.GuardId = GuardComponentId;
 
-  const auto GridAdd = NewSquad.GetGrid().TrySetUnit(UnitId, &AddedUnit, GridPosition);
+  const auto GridAdd =
+      NewSquad.GetGrid().TrySetUnit(AddedUnit.ComponentId, &AddedUnit, GridPosition);
   assert(GridAdd);
 
-  auto SquadComponent = Systems.Squads.AddComponent(NewSquad);
-  AddedUnit.SquadId = SquadComponent;
+  auto &SquadComponent = Systems.Squads.AddComponent(NewSquad);
+  AddedUnit.SquadId = SquadComponent.ComponentId;
 
-  Guard.SquadId = SquadComponent;
+  Guard.SquadId = SquadComponent.ComponentId;
   // TODO: outstanding updates.
 
-  return HireLeaderResponse{.LeaderId = UnitId, .SquadId = SquadComponent};
+  return HireLeaderResponse{.LeaderId = AddedUnit.ComponentId,
+                            .SquadId = SquadComponent.ComponentId};
 }
 
 ErrorOr<HireUnitResponse> Engine::HireUnit(PlayerId PlayerId, Id<GuardComponent> GuardComponentId,
@@ -247,18 +247,17 @@ ErrorOr<HireUnitResponse> Engine::HireUnit(PlayerId PlayerId, Id<GuardComponent>
   PlayerState.ResourcesGained -= Unit.HireCost;
 
   // Copy preset to the state as a new unit.
-  auto UnitId = Systems.Units.AddComponent(Unit);
-  auto &AddedUnit = Systems.Units.GetComponent(UnitId);
+  auto &AddedUnit = Systems.Units.AddComponent(Unit);
   AddedUnit.SquadId = Squad->ComponentId;
 
-  const auto GridAdd = Squad->GetGrid().TrySetUnit(UnitId, &AddedUnit, GridPosition);
+  const auto GridAdd = Squad->GetGrid().TrySetUnit(AddedUnit.ComponentId, &AddedUnit, GridPosition);
   assert(GridAdd);
 
   Leadership.SetValue(Leadership.GetValue() + RequiredLeadership);
 
   // TODO: outstanding updates.
 
-  return HireUnitResponse{.UnitId = UnitId};
+  return HireUnitResponse{.UnitId = AddedUnit.ComponentId};
 }
 
 ErrorOr<MoveSquadResponse> Engine::MoveSquad(PlayerId PlayerId, Id<Squad> SquadId,

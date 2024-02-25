@@ -117,7 +117,7 @@ public:
 struct Skill {};
 
 struct LeaderData {
-  Id<Unit> ComponentId;
+  Id<LeaderData> ComponentId;
 
   std::string Name;
 
