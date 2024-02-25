@@ -66,6 +66,25 @@ MapState StartWindow::CreateMap() noexcept {
   Cap.ResourceTrait = Systems.Resources.AddComponent(CapitalIncome);
   Cap.Guard = CapitalGuardId;
 
+  const auto &GoblinPreset = Mod_.GetUnitPresets().GetObjectByKey("goblin");
+  auto GoblinUnitId = Systems.Units.AddComponent(GoblinPreset);
+  Unit &Goblin = Systems.Units.GetComponent(GoblinUnitId);
+
+  LeaderData GoblinData;
+  GoblinData.Leadership = SizeTrait{3};
+  GoblinData.Leadership.SetValue(1);
+  GoblinData.Name = "Angry goblin";
+  GoblinData.Steps = SizeTrait{10};
+  auto LeaderId = Systems.Leaders.AddComponent(std::move(GoblinData));
+  Goblin.LeaderDataId = LeaderId;
+
+  Squad S{Mod_.GetGridSettings(), GoblinUnitId, 0};
+  S.Position = Coord3D{15, 15, 0};
+  assert(S.GetGrid().TrySetUnit(GoblinUnitId, &Goblin, Coord{1, 1}));
+
+  auto SquadId = Systems.Squads.AddComponent(S);
+  M.GetTile(0, 15, 15).Squad_ = SquadId;
+
   return MapState{.GlobalMap = std::move(M), .Systems = std::move(Systems)};
 }
 
