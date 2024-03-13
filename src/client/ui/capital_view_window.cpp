@@ -20,8 +20,10 @@ CapitalViewWindow::CapitalViewWindow(const Mod &M, GameplaySystems &Systems, Eng
   Guard_ = &Systems.Guards.GetComponent(Capital_->GuardId);
   auto *GuardSquad = Systems.Squads.GetComponentOrNull(Guard_->SquadId);
 
-  GuardWidget_ = new SquadWidget{M, Systems.Units, GuardSquad, UI_->dockWidgetContents_3};
-  GarrisonWidget_ = new SquadWidget{M, Systems.Units, nullptr, UI_->dockWidgetContents_3};
+  GuardWidget_ = new SquadWidget{M, Systems.Units, GuardSquad, UnitDirection::LookRight,
+                                 UI_->dockWidgetContents_3};
+  GarrisonWidget_ = new SquadWidget{M, Systems.Units, nullptr, UnitDirection::LookLeft,
+                                    UI_->dockWidgetContents_3};
   UI_->SquadsLayout->addWidget(GuardWidget_);
   UI_->SquadsLayout->addWidget(GarrisonWidget_);
 

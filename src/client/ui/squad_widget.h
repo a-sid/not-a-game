@@ -8,6 +8,7 @@
 #include "entities/squad.h"
 
 #include "game/settings.h"
+#include "ui/icon.h"
 
 namespace Ui {
 class SquadWidget;
@@ -20,7 +21,7 @@ class SquadWidget : public QWidget {
 
 public:
   SquadWidget(const NotAGame::Mod &M, NotAGame::UnitSystem &Units, NotAGame::Squad *Squad,
-              QWidget *Parent = nullptr);
+              NotAGame::UnitDirection UnitDirection, QWidget *Parent = nullptr);
   ~SquadWidget();
 
   void SetSquad(NotAGame::Squad *Squad) noexcept;
@@ -33,11 +34,11 @@ public slots:
   void OnChildClick(QPoint Pos);
 
 private:
-  //  Ui::SquadWidget *ui;
   const NotAGame::Mod &Mod_;
   NotAGame::Squad *Squad_;
   const NotAGame::GridSettings &GridSettings_;
   const NotAGame::InterfaceSettings &IfaceSettings_;
   NotAGame::UnitSystem &Units_;
   NotAGame::SmallVector<UnitWidget *, 8> UnitWidgets_;
+  NotAGame::UnitDirection UnitDirection_;
 };

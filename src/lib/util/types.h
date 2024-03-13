@@ -48,6 +48,13 @@ inline constexpr Size Linearize(Coord3D C, Dims3D Size) noexcept {
 
 template <typename T, std::size_t N> using SmallVector = boost::container::small_vector<T, N>;
 
+inline SmallVector<Coord3D, 8> GetPlaneNeighboors(Coord3D Coord) noexcept {
+  auto [X, Y, Z] = Coord;
+  return {Coord3D{X - 1, Y - 1, Z}, Coord3D{X, Y - 1, Z},    Coord3D{X + 1, Y - 1, Z},
+          Coord3D{X - 1, Y, Z},     Coord3D{X + 1, Y, Z},    Coord3D{X - 1, Y + 1, Z},
+          Coord3D{X, Y + 1, Z},     Coord3D{X + 1, Y + 1, Z}};
+}
+
 template <typename T> class IteratorRange {
 public:
   IteratorRange(T Begin, T End) noexcept : Begin_{Begin}, End_{End} {}

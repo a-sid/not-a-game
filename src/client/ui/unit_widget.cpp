@@ -6,6 +6,8 @@
 
 #include <QMouseEvent>
 
+using namespace NotAGame;
+
 void UnitIconWidget::mouseMoveEvent(QMouseEvent *event) {
   if (MouseState_.IsMouseDown) {
     MouseState_.IsDrag = true;
@@ -38,8 +40,7 @@ void UnitIconWidget::mouseReleaseEvent(QMouseEvent *Event) {
   QLabel::mouseReleaseEvent(Event);
 }
 
-UnitWidget::UnitWidget(const NotAGame::Mod &M, QPoint Pos, NotAGame::Unit *Unit,
-                       SquadWidget *Parent)
+UnitWidget::UnitWidget(const Mod &M, QPoint Pos, Unit *Unit, SquadWidget *Parent) noexcept
     : QWidget(Parent),
       UI_(new Ui::UnitWidget), Mod_{M}, Settings_{M.GetInterfaceSettings()}, Pos_{Pos} {
   UI_->setupUi(this);
@@ -50,7 +51,7 @@ UnitWidget::UnitWidget(const NotAGame::Mod &M, QPoint Pos, NotAGame::Unit *Unit,
 
 void UnitWidget::OnIconClick() { emit Clicked(Pos_); }
 
-UnitWidget::~UnitWidget() { delete UI_; }
+UnitWidget::~UnitWidget() noexcept { delete UI_; }
 
 void UnitWidget::Update() {
   uint32_t W = Unit_ ? Unit_->Width : 1;
@@ -59,8 +60,11 @@ void UnitWidget::Update() {
   UI_->gfxUnit->resize(Settings_.UnitGridSize.Width * W + (W - 1) * Settings_.GridSpacerHeight,
                        Settings_.UnitGridSize.Height * H + (H - 1) * Settings_.GridSpacerHeight);
   if (Unit_) {
-    const auto &Icon = Mod_.GetIcons().GetObjectById(Unit_->GridIconId).Data;
-    UI_->gfxUnit->setPixmap(std::any_cast<QPixmap>(Icon));
+    const auto IconId = UnitDirection_ == UnitDirection::LookRight ? Unit_->GridIcons.LookRight
+                                                                   : Unit_->GridIcons.LookLeft;
+    const auto &Icon = Mod_.GetIcons().GetObjectById(IconId).GetOpaqueData();
+    const auto &Pixmap = *std::any_cast<QPixmap>(&Icon);
+    UI_->gfxUnit->setPixmap(Pixmap);
     std::cerr << QString{"%1/%2"}
                      .arg(Unit_->Health.GetValue())
                      .arg(Unit_->Health.GetEffectiveValue())

@@ -252,12 +252,51 @@ ErrorOr<HireUnitResponse> Engine::HireUnit(PlayerId PlayerId, Id<GuardComponent>
 
   const auto GridAdd = Squad->GetGrid().TrySetUnit(AddedUnit.ComponentId, &AddedUnit, GridPosition);
   assert(GridAdd);
+  Squad->Units.push_back(AddedUnit.ComponentId);
 
   Leadership.SetValue(Leadership.GetValue() + RequiredLeadership);
 
   // TODO: outstanding updates.
 
   return HireUnitResponse{.UnitId = AddedUnit.ComponentId};
+}
+
+void Engine::NewBattleRound(BattleState &FightState, Squad &Attacker, Squad &Defender) noexcept {
+  auto &State = std::get<OnlineGameState>(State_);
+  auto &Systems = State.SavedState.Map.Systems;
+
+  ++FightState.RoundNo;
+  FightState.Turn = 0;
+  FightState.TurnOrder.clear();
+
+  auto AddAllUnits = [&](auto &Units) {
+    for (const auto &UnitId : Units) {
+      const auto &U = Systems.Units.GetComponent(UnitId);
+      if (U.IsAlive()) {
+        FightState.TurnOrder.push_back(
+            UnitTurn{.UnitId = U.ComponentId, .Priority = static_cast<int>(U.Speed.GetValue())});
+      }
+    }
+  };
+  AddAllUnits(Attacker.Units);
+  AddAllUnits(Defender.Units);
+
+  std::ranges::sort(FightState.TurnOrder, [&Systems](const auto &LHS, const auto &RHS) {
+    return LHS.Priority > RHS.Priority;
+  });
+  for (size_t I = 0, E = FightState.TurnOrder.size(); I < E; ++I) {
+    FightState.TurnOrder[I].Priority = E - I;
+  }
+  // TODO: Initiative roll.
+}
+
+void Engine::CreateBattleState(Squad &Attacker, Squad &Defender) noexcept {
+  auto &State = std::get<OnlineGameState>(State_);
+  auto &FightState = State.SavedState.FightState.emplace();
+  FightState.Attacker = Attacker.ComponentId;
+  FightState.Defender = Defender.ComponentId;
+  FightState.RoundNo = -1;
+  NewBattleRound(FightState, Attacker, Defender);
 }
 
 ErrorOr<MoveSquadResponse> Engine::MoveSquad(PlayerId PlayerId, Id<Squad> SquadId,
@@ -299,7 +338,7 @@ ErrorOr<MoveSquadResponse> Engine::MoveSquad(PlayerId PlayerId, Id<Squad> SquadI
     return DX <= 1 && DY <= 1;
   };
   auto MovePointsRemaining = LeaderComponent->Steps.GetValue();
-
+  auto &Map = MapState_.GlobalMap;
   // Dry run.
   size_t Steps = 0;
   for (size_t I = 1; I < Path.Waypoints.size(); ++I, ++Steps) {
@@ -309,8 +348,7 @@ ErrorOr<MoveSquadResponse> Engine::MoveSquad(PlayerId PlayerId, Id<Squad> SquadI
     if (!IsReachable(Path.Waypoints[I - 1].Coord, Path.Waypoints[I].Coord)) {
       return Status::Error(ErrorCode::WrongState, "Unreachable jump");
     }
-    auto Cost = ComputeMoveCost(Path.Waypoints[I - 1].Coord, Path.Waypoints[I].Coord,
-                                MapState_.GlobalMap, Mod_);
+    auto Cost = ComputeMoveCost(Path.Waypoints[I - 1].Coord, Path.Waypoints[I].Coord, Map, Mod_);
     MovePointsRemaining -= std::min(MovePointsRemaining, Cost);
   }
 
@@ -318,16 +356,35 @@ ErrorOr<MoveSquadResponse> Engine::MoveSquad(PlayerId PlayerId, Id<Squad> SquadI
     auto &Guard = Systems.Guards.GetComponent(Squad->GuardId);
     Guard.SquadId = NullId;
   } else {
-    MapState_.GlobalMap.GetTile(Squad->Position).Squad_ = NullId;
+    Map.GetTile(Squad->Position).Squad_ = NullId;
   }
 
   Squad->Position = Path.Waypoints[Steps].Coord;
-  MapState_.GlobalMap.GetTile(Squad->Position).Squad_ = SquadId;
+  Map.GetTile(Squad->Position).Squad_ = SquadId;
   LeaderComponent->Steps.SetValue(MovePointsRemaining);
+
+  NotAGame::Squad *OpponentSquad = nullptr;
+  for (const auto Neighboor : GetPlaneNeighboors(Squad->Position)) {
+    if (!Map.IsValid(Neighboor)) {
+      continue;
+    }
+    if (const auto NeighboorSquadId = Map.GetTile(Neighboor).Squad_; NeighboorSquadId.IsValid()) {
+      auto &NeighboorSquad = Systems.Squads.GetComponent(NeighboorSquadId);
+      if (NeighboorSquad.Player_ != PlayerId) {
+        OpponentSquad = &NeighboorSquad;
+        break;
+      }
+    }
+  }
+
+  if (OpponentSquad) {
+    CreateBattleState(*Squad, *OpponentSquad);
+  }
 
   // TODO: outstanding updates.
   return MoveSquadResponse{.NumSteps = static_cast<Size>(Steps),
-                           .MovePointsRemaining = MovePointsRemaining};
+                           .MovePointsRemaining = MovePointsRemaining,
+                           .SquadAttacked = OpponentSquad ? OpponentSquad->ComponentId : NullId};
 }
 
 } // namespace NotAGame

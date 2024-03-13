@@ -1,5 +1,6 @@
 #include "global_map_window.h"
 #include "./ui_global_map_window.h"
+#include "battle_window.h"
 #include "capital_view_window.h"
 #include "new_turn_dialog.h"
 
@@ -406,10 +407,17 @@ void GlobalMapWindow::DoSquadWalk(Id<Squad> SquadId, Path &Path) noexcept {
   } else {
     Path.Walk(Response.GetValue().NumSteps);
   }
+
+  if (auto SquadAttacked = Response.GetValue().SquadAttacked; SquadAttacked.IsValid()) {
+    auto &Systems = State_.SavedState.Map.Systems;
+    auto &Attacker = Systems.Squads.GetComponent(SquadId);
+    auto &Defender = Systems.Squads.GetComponent(SquadAttacked);
+    BattleWindow W{Mod_, Engine_, Systems, Attacker, Defender, this};
+    W.exec();
+  }
 }
 
 void GlobalMapWindow::OpenCapitalScreen() {
-
   auto W = new CapitalViewWindow{Mod_,    State_.SavedState.Map.Systems, Engine_,
                                  Player_, Id<CapitalComponent>{0},       this};
   W->show();

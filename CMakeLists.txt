@@ -114,6 +114,9 @@ target_link_libraries(engine PRIVATE state)
 
 add_executable(not-a-game
   main.cpp
+  src/client/ui/battle_window.cpp
+  src/client/ui/battle_window.h
+  src/client/ui/battle_window.ui
   src/client/ui/capital_view_window.cpp
   src/client/ui/capital_view_window.h
   src/client/ui/capital_view_window.ui

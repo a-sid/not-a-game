@@ -186,8 +186,11 @@ private:
     U.Health = Doc["health"].GetUint();
     U.Speed = Doc["speed"].GetUint();
 
-    Icon GridIcon{Path / "grid.png"};
-    U.GridIconId = M.Icons_.AddObject(Name + "_" + "grid", std::move(GridIcon));
+    auto GridIcons = Icon::LoadNormalAndMirrored(Path / "grid.png");
+    U.GridIcons.LookRight =
+        M.Icons_.AddObject(Name + "_" + "grid_right", std::move(GridIcons.first));
+    U.GridIcons.LookLeft =
+        M.Icons_.AddObject(Name + "_" + "grid_left", std::move(GridIcons.second));
 
     Icon InfoIcon{Path / "info.png"};
     U.InfoIconId = M.Icons_.AddObject(Name + "_" + "info", std::move(InfoIcon));

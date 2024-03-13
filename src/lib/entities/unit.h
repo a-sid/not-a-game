@@ -4,6 +4,7 @@
 #include "entities/effect.h"
 #include "entities/inventory.h"
 #include "entities/resource.h"
+#include "ui/icon.h"
 #include "util/id.h"
 #include "util/registry.h"
 #include "util/types.h"
@@ -13,8 +14,6 @@
 #include <string>
 
 namespace NotAGame {
-
-class Icon;
 
 class Unit;
 
@@ -207,7 +206,7 @@ public:
       : Named{std::move(N)}, HireCost{ResourceRegistry}, ResurrectCost{ResourceRegistry},
         HealPerHPCost{ResourceRegistry} {}
 
-  Id<Icon> GridIconId;
+  IconSet GridIcons;
   Id<Icon> InfoIconId;
 
   Size ExpForKill = 0;
@@ -247,7 +246,8 @@ public:
 
   bool IsMovable_ = true;
 
-  bool IsAlive() const noexcept { return Health.GetValue() != 0; }
+  bool IsDead() const noexcept { return Health.GetValue() == 0; }
+  bool IsAlive() const noexcept { return !IsDead(); }
 
   bool IsLeader() const noexcept { return LeaderDataId.IsValid(); }
 

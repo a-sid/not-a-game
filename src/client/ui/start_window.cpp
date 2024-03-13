@@ -56,8 +56,6 @@ MapState StartWindow::CreateMap() noexcept {
       .Player = 0, .Origin = Cap.GetPosition(), .OriginSize = Cap.GetSize(), .Radius = 7};
   Cap.VisibilityRangeTrait = Systems.Visibility.AddComponent(CapRange).ComponentId;
 
-  const auto GoldId = Mod_.GetResources().GetId("gold");
-  const auto RuneManaId = Mod_.GetResources().GetId("gold");
   Resources R{Mod_.GetResources()};
   R.SetAmountByName("gold", 100);
   R.SetAmountByName("mana_runes", 25);
@@ -77,12 +75,12 @@ MapState StartWindow::CreateMap() noexcept {
   auto LeaderId = Systems.Leaders.AddComponent(std::move(GoblinData)).ComponentId;
   Goblin.LeaderDataId = LeaderId;
 
-  Squad S{Mod_.GetGridSettings(), Goblin.ComponentId, 0};
-  S.Position = Coord3D{15, 15, 0};
+  Squad S{Mod_.GetGridSettings(), Goblin.ComponentId, 1};
+  S.Position = Coord3D{14, 14, 0};
   assert(S.GetGrid().TrySetUnit(Goblin.ComponentId, &Goblin, Coord{1, 1}));
 
   auto &Squad = Systems.Squads.AddComponent(S);
-  M.GetTile(0, 15, 15).Squad_ = Squad.ComponentId;
+  M.GetTile(0, 14, 14).Squad_ = Squad.ComponentId;
 
   return MapState{.GlobalMap = std::move(M), .Systems = std::move(Systems)};
 }

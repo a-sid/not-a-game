@@ -86,6 +86,20 @@ struct PlayerGameState {
   //  std::unordered_set<Id<Squad>> Squads_;
 };
 
+struct UnitTurn {
+  Id<Unit> UnitId;
+  int Priority;
+};
+
+struct BattleState {
+  Id<Squad> Attacker;
+  Id<Squad> Defender;
+
+  SmallVector<UnitTurn, 32> TurnOrder;
+  Size Turn;
+  Size RoundNo;
+};
+
 struct SavedGameState {
   SavedGameState(Mod &M, MapState &Map, Size NumPlayers) noexcept : M{M}, Map{Map} {
     PlayerStates.reserve(NumPlayers);
@@ -96,6 +110,7 @@ struct SavedGameState {
 
   Mod &M;
   MapState &Map;
+  std::optional<BattleState> FightState;
 
   SmallVector<PlayerGameState, kMaxPlayers> PlayerStates;
 

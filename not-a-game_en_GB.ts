@@ -2,6 +2,39 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_GB">
 <context>
+    <name>BattleWindow</name>
+    <message>
+        <location filename="src/client/ui/battle_window.ui" line="20"/>
+        <source>Dialog</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/battle_window.ui" line="48"/>
+        <source>Защита</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/battle_window.ui" line="55"/>
+        <source>Отступить</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/battle_window.ui" line="62"/>
+        <source>Ждать</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/battle_window.ui" line="69"/>
+        <source>Автобой</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/client/ui/battle_window.ui" line="76"/>
+        <source>Быстрый бой</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>CapitalViewWindow</name>
     <message>
         <location filename="src/client/ui/capital_view_window.ui" line="32"/>

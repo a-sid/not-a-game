@@ -50,10 +50,25 @@ class UnitWidget : public QWidget {
 
 public:
   UnitWidget(const NotAGame::Mod &M, QPoint Pos, NotAGame::Unit *Unit,
-             SquadWidget *Parent = nullptr);
+             SquadWidget *Parent = nullptr) noexcept;
+  ~UnitWidget() noexcept;
+
   void SetUnit(QPoint Pos, NotAGame::Unit *Unit) noexcept;
   void Update();
-  ~UnitWidget();
+
+  NotAGame::UnitDirection GetUnitDirection() const noexcept { return UnitDirection_; }
+
+  void SetUnitDirection(NotAGame::UnitDirection UnitDirection) noexcept {
+    if (UnitDirection_ != UnitDirection) {
+      UnitDirection_ = UnitDirection;
+      Update();
+    }
+  }
+
+  void ChangeUnitDirection() noexcept {
+    auto NewDirection = static_cast<NotAGame::UnitDirection>(!static_cast<bool>(UnitDirection_));
+    SetUnitDirection(NewDirection);
+  }
 
 signals:
   void MouseMove(QMouseEvent *event);
@@ -70,4 +85,5 @@ private:
   const NotAGame::InterfaceSettings &Settings_;
   QPoint Pos_;
   const NotAGame::Unit *Unit_;
+  NotAGame::UnitDirection UnitDirection_{NotAGame::UnitDirection::LookRight};
 };

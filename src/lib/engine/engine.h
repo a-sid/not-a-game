@@ -43,6 +43,7 @@ struct HireUnitResponse {
 struct MoveSquadResponse {
   Size NumSteps;
   Size MovePointsRemaining;
+  Id<Squad> SquadAttacked;
 };
 
 class EventListener {
@@ -90,6 +91,9 @@ private:
       -> decltype(Func(static_cast<State *>(nullptr)));
 
   NewTurnEvent NewTurn() noexcept;
+
+  void CreateBattleState(Squad &Attacker, Squad &Defender) noexcept;
+  void NewBattleRound(BattleState &BattleState, Squad &Attacker, Squad &Defender) noexcept;
 
   Mod &Mod_;
   MapState &MapState_;

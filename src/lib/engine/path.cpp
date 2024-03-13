@@ -31,10 +31,7 @@ void AddLinks(Edges &Edges, Weights &Weights, const GlobalMap &Map, Dim X, Dim Y
   // TODO: consider leader perks.
   const auto &Tile = Map.GetTile(Z, X, Y);
 
-  for (const auto Neighboor :
-       {Coord3D{X - 1, Y - 1, Z}, Coord3D{X, Y - 1, Z}, Coord3D{X + 1, Y - 1, Z},
-        Coord3D{X - 1, Y, Z}, Coord3D{X + 1, Y, Z}, Coord3D{X - 1, Y + 1, Z}, Coord3D{X, Y + 1, Z},
-        Coord3D{X + 1, Y + 1, Z}}) {
+  for (const auto Neighboor : GetPlaneNeighboors(From)) {
     if (!Map.IsValid(Neighboor)) {
       continue;
     }

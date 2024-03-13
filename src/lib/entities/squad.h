@@ -76,7 +76,7 @@ class Squad {
 public:
   Squad(const GridSettings &Settings, Id<Unit> Leader, Id<Player> PlayerId) noexcept
       : Grid_{Settings.Width, Settings.Height}, Leader_{Leader}, Player_{PlayerId} {
-    Units_.push_back(Leader);
+    Units.push_back(Leader);
   }
   Grid &GetGrid() noexcept { return Grid_; }
 
@@ -87,10 +87,10 @@ public:
   Id<GuardComponent> GuardId;
   Id<Player> Player_;
   Coord3D Position;
+  SmallVector<Id<Unit>, 8> Units;
 
 private:
   Grid Grid_;
-  SmallVector<Id<Unit>, 8> Units_;
   Id<Unit> Leader_;
 };
 
