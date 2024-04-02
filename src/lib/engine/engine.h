@@ -40,6 +40,25 @@ struct HireUnitResponse {
   Id<Unit> UnitId;
 };
 
+struct UnitAttackRequest {
+  Id<Unit> Attacker;
+  Id<Squad> TargetSquadId;
+  Coord TargetGridCoord;
+};
+
+struct UnitAttackResponse {
+  Id<Unit> Target;
+  SmallVector<Effect, 4> Effects;
+};
+
+struct UnitDefenceRequest {
+  Id<Unit> Attacker;
+};
+
+struct UnitWaitRequest {
+  Id<Unit> Attacker;
+};
+
 struct MoveSquadResponse {
   Size NumSteps;
   Size MovePointsRemaining;
@@ -82,6 +101,12 @@ public:
   OnlineGameState *GetOnlineState() { return std::get_if<OnlineGameState>(&State_); }
 
 private:
+  enum class UnitTurnResult {
+    PlayerAwait,
+    Victory,
+    TurnOver,
+  };
+
   template <typename State, typename Fn>
   auto CheckStateAndCall(Fn &&Func, const char *FnName) noexcept
       -> decltype(Func(static_cast<State *>(nullptr)));
@@ -94,6 +119,8 @@ private:
 
   void CreateBattleState(Squad &Attacker, Squad &Defender) noexcept;
   void NewBattleRound(BattleState &BattleState, Squad &Attacker, Squad &Defender) noexcept;
+  Id<Squad> CheckBattleVictory(GameplaySystems &Systems, Squad &Attacker, Squad &Defender) noexcept;
+  UnitTurnResult DoUnitTurns(GameplaySystems &Systems, BattleState &FightState) noexcept;
 
   Mod &Mod_;
   MapState &MapState_;

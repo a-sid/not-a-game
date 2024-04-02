@@ -88,6 +88,7 @@ struct PlayerGameState {
 
 struct UnitTurn {
   Id<Unit> UnitId;
+  Id<Player> Owner;
   int Priority;
 };
 

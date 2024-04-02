@@ -269,17 +269,18 @@ void Engine::NewBattleRound(BattleState &FightState, Squad &Attacker, Squad &Def
   FightState.Turn = 0;
   FightState.TurnOrder.clear();
 
-  auto AddAllUnits = [&](auto &Units) {
-    for (const auto &UnitId : Units) {
+  auto AddAllUnits = [&](Squad &S) {
+    for (const auto &UnitId : S.Units) {
       const auto &U = Systems.Units.GetComponent(UnitId);
       if (U.IsAlive()) {
-        FightState.TurnOrder.push_back(
-            UnitTurn{.UnitId = U.ComponentId, .Priority = static_cast<int>(U.Speed.GetValue())});
+        FightState.TurnOrder.push_back(UnitTurn{.UnitId = U.ComponentId,
+                                                .Owner = S.Player_,
+                                                .Priority = static_cast<int>(U.Speed.GetValue())});
       }
     }
   };
-  AddAllUnits(Attacker.Units);
-  AddAllUnits(Defender.Units);
+  AddAllUnits(Attacker);
+  AddAllUnits(Defender);
 
   std::ranges::sort(FightState.TurnOrder, [&Systems](const auto &LHS, const auto &RHS) {
     return LHS.Priority > RHS.Priority;
@@ -288,6 +289,109 @@ void Engine::NewBattleRound(BattleState &FightState, Squad &Attacker, Squad &Def
     FightState.TurnOrder[I].Priority = E - I;
   }
   // TODO: Initiative roll.
+  while (DoUnitTurns(Systems, FightState) == UnitTurnResult::TurnOver) {
+    ;
+  }
+}
+
+Id<Squad> Engine::CheckBattleVictory(GameplaySystems &Systems, Squad &Attacker,
+                                     Squad &Defender) noexcept {
+  auto AllAreDead = [&Systems](const Squad &S) {
+    for (auto UnitId : S.Units) {
+      if (const auto &Unit = Systems.Units.GetComponent(UnitId); Unit.IsAlive()) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  if (AllAreDead(Attacker)) {
+    return Defender.ComponentId;
+  }
+
+  if (AllAreDead(Defender)) {
+    return Attacker.ComponentId;
+  }
+
+  return NullId;
+}
+
+void Engine::DoAIBattleAction(GameplaySystems &Systems, BattleState &FightState) noexcept {
+  auto &UnitTurn = FightState.TurnOrder[FightState.Turn];
+  const auto &Unit = Systems.Units.GetComponent(UnitTurn.UnitId);
+  auto [SquadId, Cell] = AISelectTarget();
+  PerformAttack(Unit.Attack, SquadId, Cell);
+}
+
+std::vector<AttackOption> Engine::FillAIAttackOptions(GameplaySystems &Systems,
+                                                      BattleState &FightState,
+                                                      const Unit &U) noexcept {
+  const auto &UnitSquad = Systems.Squads.GetComponent(U.SquadId);
+  const auto HostileSquadId =
+      UnitSquad.ComponentId == FightState.Attacker ? FightState.Defender : FightState.Attacker;
+  auto &HostileSquad = Systems.Squads.GetComponent(HostileSquadId);
+
+  std::vector<AttackOption> Result;
+  for (const auto &Action : U.BattleActions) {
+    if (Action.Range == AttackRange::Nearest) {
+      // Do we have any friendly units before us?
+      bool CanAttack = true;
+      for (auto FriendId : UnitSquad.Units) {
+        Unit &Friend = Systems.Units.GetComponent(FriendId);
+        if (Friend.IsAlive() && Friend.GridPosition.X < U.GridPosition.X) {
+          CanAttack = false;
+          break;
+        }
+      }
+      if (!CanAttack) {
+        continue;
+      }
+
+      Size NearestColumn = Mod_.GetGridSettings().Width;
+      for (auto EnemyId : HostileSquad.Units) {
+        const auto &Enemy = Systems.Units.GetComponent(EnemyId);
+        NearestColumn = std::min(Enemy.GridPosition.X, NearestColumn);
+      }
+    }
+    U.GridPosition
+
+        size_t NumUnits = 0;
+  }
+}
+}
+
+std::pair<Id<Squad>, Coord> Engine::AISelectTarget(const Unit &U) noexcept {
+  auto Options = FillAIAttackOptions();
+  const auto &SelectedOption = Options[0];
+  if (Unit.Attack.IsFriendly()) {
+  }
+}
+Engine::UnitTurnResult Engine::DoUnitTurns(GameplaySystems &Systems,
+                                           BattleState &FightState) noexcept {
+  auto &Attacker = Systems.Squads.GetComponent(FightState.Attacker);
+  auto &Defender = Systems.Squads.GetComponent(FightState.Defender);
+
+  while (FightState.Turn < FightState.TurnOrder.size()) {
+    // TODO: effects application and removal.
+    auto &UnitTurn = FightState.TurnOrder[FightState.Turn];
+    const auto &Unit = Systems.Units.GetComponent(UnitTurn.UnitId);
+    if (Unit.IsDead()) {
+      ++FightState.Turn;
+      continue;
+    }
+
+    if (GetOnlineState()->Players[UnitTurn.Owner].Source == PlayerKind::Human) {
+      return UnitTurnResult::PlayerAwait; // Awaiting player action.
+    } else {
+      DoAIBattleAction();
+    }
+
+    const auto WinnerSquadId = CheckBattleVictory(Systems, Attacker, Defender);
+    if (WinnerSquadId.IsValid()) {
+      return UnitTurnResult::Victory;
+    }
+  }
+  return UnitTurnResult::TurnOver;
 }
 
 void Engine::CreateBattleState(Squad &Attacker, Squad &Defender) noexcept {
