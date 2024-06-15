@@ -17,10 +17,6 @@
 
 namespace NotAGame {
 
-struct DamageSource {
-  std::string Name;
-};
-
 struct Language {
   std::string Value;
 };
@@ -38,6 +34,7 @@ public:
   static Mod Load(const std::string &Name) noexcept;
 
   // TODO: Should we actually turn it into struct?
+  const auto &GetRanges() const noexcept { return ActionRanges_; }
   const auto &GetTerrains() const noexcept { return Terrains_; }
   const auto &GetResources() const noexcept { return Resources_; }
   const auto &GetSpells() const noexcept { return Spells_; }
@@ -60,14 +57,18 @@ public:
 private:
   explicit Mod(Named Name) noexcept;
 
+  void InitRangeMechanics() noexcept;
+
   friend class NotAGame::ModLoader;
+
+  Utils::Registry<std::unique_ptr<ActionRange>, 8> ActionRanges_;
 
   Utils::Registry<Terrain, 8> Terrains_;
   ResourceRegistry Resources_;
 
   Utils::Registry<Unit> UnitPresets_;
   Utils::Registry<LeaderData> LeaderPresets_;
-  Utils::Registry<DamageSource, 16> DamageSources_;
+  Utils::Registry<ActionSource, 16> ActionSources_;
   Utils::Registry<std::unique_ptr<UnitTrait>> UnitTraits_;
   Utils::Registry<Icon, 256> Icons_;
   //  Utils::Registry<ItemKind> ItemKinds_;

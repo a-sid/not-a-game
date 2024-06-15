@@ -1,7 +1,6 @@
 #pragma once
 
 #include "entities/building.h"
-#include "entities/unit.h"
 #include "util/types.h"
 
 #include <deque>

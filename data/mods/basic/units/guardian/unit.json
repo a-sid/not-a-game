@@ -15,17 +15,23 @@
   "speed": 40,
   "exp": 150,
   "num_attacks": 1,
-  "attack": {
-    "range": "nearest",
-    "attacks": [
-      {
-        "damage_source": "weapon",
-        "effect": "damage",
-        "value": 55,
-        "accuracy": 80
-      }
-    ]
-  },
+  "actions": [
+    {
+      "range": "nearest",
+      "subactions": [
+        {
+          "description": {
+            "ru": "Удар топором",
+            "en": "Axe strike"
+          },
+         "source": "weapon",
+          "kind": "direct_damage",
+          "amount": 50,
+          "accuracy": 80
+        }
+      ]
+    }
+  ],
   "immunes": [],
   "wards": [],
   "exp_for_kill": 60,

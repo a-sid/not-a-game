@@ -1,4 +1,5 @@
 #include "game/mod.h"
+#include "engine/mechanics.h"
 #include "util/settings.h"
 
 #include <rapidjson/document.h>
@@ -104,6 +105,14 @@ template <typename Value> Resources ParseResources(const Mod &M, const Value &Do
 
 Mod::Mod(Named Name) noexcept : Named{std::move(Name)} {}
 
+void Mod::InitRangeMechanics() noexcept {
+  ActionRanges_.AddObject("nearest", std::make_unique<NearestUnitRange>(GridSettings_.Width));
+  ActionRanges_.AddObject("any_enemy", std::make_unique<AnyUnitRange>(ActionSquad::Enemy));
+  ActionRanges_.AddObject("any_friend", std::make_unique<AnyUnitRange>(ActionSquad::Friendly));
+  ActionRanges_.AddObject("all_enemies", std::make_unique<AllUnitRange>(ActionSquad::Enemy));
+  ActionRanges_.AddObject("all_friends", std::make_unique<AllUnitRange>(ActionSquad::Friendly));
+}
+
 class ModLoader {
 public:
   static Mod Load(const std::filesystem::path &Path) noexcept {
@@ -124,6 +133,9 @@ public:
     M.InterfaceSettings_ = LoadInterfaceSettings(Doc["interface_settings"]);
     M.LandPropagationSettings_ = LoadLandPropagationSettings(Doc["land_propagation_settings"]);
 
+    M.InitRangeMechanics();
+
+    LoadDamageSources(M, Doc["damage_sources"]);
     LoadBuildingPages(M, Doc["building_pages"]);
     LoadResources(M, Path / "resources");
     LoadUnitPresets(M, Path / "units");
@@ -163,6 +175,32 @@ private:
       std::string Name = P.GetName();
       M.BuildingPages_.AddObject(std::move(Name), std::move(P));
     }
+  }
+
+  template <typename Value> static void LoadDamageSources(Mod &M, const Value &V) noexcept {
+    for (const auto &Doc : V.GetArray()) {
+      auto Named = LoadNamed(Doc);
+      ActionSource S{std::move(Named)};
+      std::string Name = S.GetName();
+      M.ActionSources_.AddObject(std::move(Name), std::move(S));
+    }
+  }
+
+  template <typename Value>
+  static std::unique_ptr<EffectAction> ParseEffectAction(Mod &M, const Value &V) noexcept {
+    auto Kind = GetString(V["kind"]);
+    auto Source = M.ActionSources_.GetId(V["source"].GetString());
+    auto Description = V["description"][Utils::DEFAULT_LANG].GetString();
+
+    if (Kind == "direct_damage") {
+      auto Amount = V["amount"].GetUint();
+      return std::make_unique<DirectDamageAction>(Amount, Source, Description);
+    }
+    if (Kind == "critical_damage") {
+      auto Amount = V["amount"].GetUint();
+      return std::make_unique<CriticalDamageAction>(Amount, Source, Description);
+    }
+    LogUnreachable() << "Unknown effect kind: " << Kind;
   }
 
   static void LoadUnitPreset(Mod &M, const std::filesystem::path &Path,
@@ -208,8 +246,23 @@ private:
     U.HealthGrowth = Growth["health"].GetUint();
     U.ExpForKillGrowth = Growth["exp_for_kill"].GetUint();
 
+    Size ActionIdx = 0;
+    for (const auto &ActionDoc : Doc["actions"].GetArray()) {
+      const auto *Range = M.GetRanges().GetObjectByKey(ActionDoc["range"].GetString()).get();
+      SmallVector<SubAction, 2> SubActions;
+      for (const auto &SubActionDoc : ActionDoc["subactions"].GetArray()) {
+        SubAction SubAct;
+        SubAct.Accuracy =
+            CappedTrait<uint8_t>{static_cast<uint8_t>(SubActionDoc["accuracy"].GetUint()), 100};
+        SubAct.Effect = ParseEffectAction(M, SubActionDoc);
+        SubActions.push_back(std::move(SubAct));
+      }
+      UnitAction UA{.Index = ActionIdx, .Range = Range, .SubActions = std::move(SubActions)};
+      U.BattleActions.push_back(std::move(UA));
+      ++ActionIdx;
+    }
+
     const auto *LeaderDataDoc = FindMemberPtr(Doc, "leader");
-    bool IsLeader = Doc.HasMember("leader");
     if (LeaderDataDoc) {
       LeaderData LD;
       LD.Leadership = (*LeaderDataDoc)["leadership"].GetUint();
@@ -259,11 +312,11 @@ private:
   static void LoadSpell(Mod &M, const std::filesystem::path &Path,
                         const rapidjson::Document &Doc) noexcept {
     Named Named = LoadNamed(Doc);
-    Effect E; // TODO: Parse and load when implemented
+    // Effect E; // TODO: Parse and load when implemented
     std::string Name{Named.GetName()};
     Spell S{std::move(Named), M.GetResources()};
     S.Level = Doc["level"].GetUint();
-    S.SpellEffect = E;
+    // S.SpellEffect = E;
     const auto &Costs = Doc["costs"];
     S.LearningCost = ParseResources(M, Costs["learning"]);
     S.UseCost = ParseResources(M, Costs["use"]);

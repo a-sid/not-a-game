@@ -15,17 +15,23 @@
   "speed": 40,
   "exp": 50,
   "num_attacks": 1,
-  "attack": {
-    "range": "nearest",
-    "attacks": [
-      {
-        "damage_source": "weapon",
-        "effect": "damage",
-        "value": 15,
-        "accuracy": 80
-      }
-    ]
-  },
+  "actions": [
+    {
+      "range": "nearest",
+      "subactions": [
+        {
+          "description": {
+            "ru": "Удар копьём",
+            "en": "Spear strike"
+          },
+          "source": "weapon",
+          "kind": "direct_damage",
+          "amount": 15,
+          "accuracy": 80
+        }
+      ]
+    }
+  ],
   "immunes": [],
   "wards": [],
   "exp_for_kill": 20,

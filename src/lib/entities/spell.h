@@ -16,7 +16,7 @@ struct Spell : public Named {
         LearningCost{ResourceRegistry}, UseCost{ResourceRegistry}, TradeCost{ResourceRegistry} {}
 
   Size Level;
-  Effect SpellEffect;
+  // Effect SpellEffect;
 
   Resources LearningCost;
   Resources UseCost;

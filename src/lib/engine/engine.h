@@ -65,6 +65,13 @@ struct MoveSquadResponse {
   Id<Squad> SquadAttacked;
 };
 
+struct AttackOption {
+  Size ActionIndex;
+  Id<Squad> SquadId;
+  Coord GridCoord;
+  Id<Unit> UnitId;
+};
+
 class EventListener {
 public:
   virtual void OnPlayerNewTurn(const NewTurnEvent &Event) noexcept = 0;
@@ -93,6 +100,8 @@ public:
 
   ErrorOr<MoveSquadResponse> MoveSquad(PlayerId PlayerId, Id<Squad> SquadId,
                                        const Path &Path) noexcept;
+  void PerformAction(GameplaySystems &Systems, Unit &U,
+                     const AttackOption &AttackOpt) noexcept;
 
   Status EndTurn(const Player &Player) noexcept;
 
@@ -121,6 +130,11 @@ private:
   void NewBattleRound(BattleState &BattleState, Squad &Attacker, Squad &Defender) noexcept;
   Id<Squad> CheckBattleVictory(GameplaySystems &Systems, Squad &Attacker, Squad &Defender) noexcept;
   UnitTurnResult DoUnitTurns(GameplaySystems &Systems, BattleState &FightState) noexcept;
+  void DoAIBattleAction(GameplaySystems &Systems, BattleState &FightState) noexcept;
+  SmallVector<AttackOption, 8> FillAIAttackOptions(GameplaySystems &Systems,
+                                                   BattleState &FightState, const Unit &U) noexcept;
+  AttackOption AISelectAction(GameplaySystems &Systems, BattleState &FightState,
+                              const Unit &U) noexcept;
 
   Mod &Mod_;
   MapState &MapState_;

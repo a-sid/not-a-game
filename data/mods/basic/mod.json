@@ -136,6 +136,29 @@
         "height": 480
       }
     }
-  }
-
+  },
+  "damage_sources": [
+    {
+      "name": "water",
+      "title": {
+        "ru": "Вода",
+        "en": "Support"
+      },
+      "description": {
+        "ru": "Урон водой",
+        "en": "Water damage"
+      }
+    },
+    {
+      "name": "weapon",
+      "title": {
+        "ru": "Оружие",
+        "en": "Weapon"
+      },
+      "description": {
+        "ru": "Урон оружием",
+        "en": "Weapon damage"
+      }
+    }
+  ]
 }

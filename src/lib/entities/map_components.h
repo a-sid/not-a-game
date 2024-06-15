@@ -1,7 +1,8 @@
 #pragma once
 
 #include "entities/fraction.h"
-#include "entities/squad.h"
+#include "entities/inventory.h"
+#include "entities/unit_grid.h"
 
 #include "util/id.h"
 #include "util/types.h"
@@ -11,6 +12,8 @@
 namespace NotAGame {
 
 class Player;
+class Squad;
+
 using PlayerId = Id<Player>;
 
 class MapObject;
@@ -49,7 +52,7 @@ struct CapitalComponent : public MapComponent {
 
 struct RewardComponent : public MapComponent {
   std::optional<Resources> Resource;
-  Id<Inventory> Items;
+  Inventory Items;
 };
 
 struct BattleResult {

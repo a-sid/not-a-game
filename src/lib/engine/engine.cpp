@@ -318,54 +318,41 @@ Id<Squad> Engine::CheckBattleVictory(GameplaySystems &Systems, Squad &Attacker,
 
 void Engine::DoAIBattleAction(GameplaySystems &Systems, BattleState &FightState) noexcept {
   auto &UnitTurn = FightState.TurnOrder[FightState.Turn];
-  const auto &Unit = Systems.Units.GetComponent(UnitTurn.UnitId);
-  auto [SquadId, Cell] = AISelectTarget();
-  PerformAttack(Unit.Attack, SquadId, Cell);
+  auto &Unit = Systems.Units.GetComponent(UnitTurn.UnitId);
+  auto AttackOption = AISelectAction(Systems, FightState, Unit);
+  PerformAction(Systems, Unit, AttackOption);
 }
 
-std::vector<AttackOption> Engine::FillAIAttackOptions(GameplaySystems &Systems,
-                                                      BattleState &FightState,
-                                                      const Unit &U) noexcept {
-  const auto &UnitSquad = Systems.Squads.GetComponent(U.SquadId);
+SmallVector<AttackOption, 8> Engine::FillAIAttackOptions(GameplaySystems &Systems,
+                                                         BattleState &FightState,
+                                                         const Unit &U) noexcept {
+  auto &UnitSquad = Systems.Squads.GetComponent(U.SquadId);
   const auto HostileSquadId =
-      UnitSquad.ComponentId == FightState.Attacker ? FightState.Defender : FightState.Attacker;
+      U.SquadId == FightState.Attacker ? FightState.Defender : FightState.Attacker;
   auto &HostileSquad = Systems.Squads.GetComponent(HostileSquadId);
 
-  std::vector<AttackOption> Result;
+  SmallVector<AttackOption, 8> Result;
   for (const auto &Action : U.BattleActions) {
-    if (Action.Range == AttackRange::Nearest) {
-      // Do we have any friendly units before us?
-      bool CanAttack = true;
-      for (auto FriendId : UnitSquad.Units) {
-        Unit &Friend = Systems.Units.GetComponent(FriendId);
-        if (Friend.IsAlive() && Friend.GridPosition.X < U.GridPosition.X) {
-          CanAttack = false;
-          break;
-        }
-      }
-      if (!CanAttack) {
-        continue;
-      }
+    auto Targets = Action.Range->ComputeReachableUnits(Systems, UnitSquad, HostileSquad, U);
 
-      Size NearestColumn = Mod_.GetGridSettings().Width;
-      for (auto EnemyId : HostileSquad.Units) {
-        const auto &Enemy = Systems.Units.GetComponent(EnemyId);
-        NearestColumn = std::min(Enemy.GridPosition.X, NearestColumn);
-      }
+    for (auto *Unit : Targets) {
+      Result.push_back(AttackOption{.ActionIndex = Action.Index,
+                                    .SquadId = Unit->SquadId,
+                                    .GridCoord = Unit->GridPosition,
+                                    .UnitId = Unit->ComponentId});
     }
-    U.GridPosition
-
-        size_t NumUnits = 0;
   }
-}
+
+  return Result;
 }
 
-std::pair<Id<Squad>, Coord> Engine::AISelectTarget(const Unit &U) noexcept {
-  auto Options = FillAIAttackOptions();
-  const auto &SelectedOption = Options[0];
-  if (Unit.Attack.IsFriendly()) {
-  }
+AttackOption Engine::AISelectAction(GameplaySystems &Systems, BattleState &FightState,
+                                    const Unit &U) noexcept {
+  auto Options = FillAIAttackOptions(Systems, FightState, U);
+  auto &SelectedOption = Options[0];
+  return SelectedOption;
 }
+
 Engine::UnitTurnResult Engine::DoUnitTurns(GameplaySystems &Systems,
                                            BattleState &FightState) noexcept {
   auto &Attacker = Systems.Squads.GetComponent(FightState.Attacker);
@@ -383,7 +370,7 @@ Engine::UnitTurnResult Engine::DoUnitTurns(GameplaySystems &Systems,
     if (GetOnlineState()->Players[UnitTurn.Owner].Source == PlayerKind::Human) {
       return UnitTurnResult::PlayerAwait; // Awaiting player action.
     } else {
-      DoAIBattleAction();
+      DoAIBattleAction(Systems, FightState);
     }
 
     const auto WinnerSquadId = CheckBattleVictory(Systems, Attacker, Defender);
@@ -392,6 +379,33 @@ Engine::UnitTurnResult Engine::DoUnitTurns(GameplaySystems &Systems,
     }
   }
   return UnitTurnResult::TurnOver;
+}
+
+void Engine::PerformAction(GameplaySystems &Systems, Unit &U,
+                           const AttackOption &AttackOpt) noexcept {
+  auto &State = std::get<OnlineGameState>(State_);
+  auto &FightState = *State.SavedState.FightState;
+
+  auto &Attacker = Systems.Squads.GetComponent(FightState.Attacker);
+  auto &Defender = Systems.Squads.GetComponent(FightState.Defender);
+  auto &UnitSquad = Systems.Squads.GetComponent(U.SquadId);
+  const auto HostileSquadId =
+      U.SquadId == FightState.Attacker ? FightState.Defender : FightState.Attacker;
+  auto &HostileSquad = Systems.Squads.GetComponent(HostileSquadId);
+
+  const auto &Attack = U.BattleActions[AttackOpt.ActionIndex];
+  auto ReachableUnits = Attack.Range->ComputeReachableUnits(Systems, HostileSquad, UnitSquad, U);
+  auto &Target = Systems.Units.GetComponent(AttackOpt.UnitId);
+  if (std::ranges::find(ReachableUnits, &Target) == ReachableUnits.end()) {
+    return; // TODO: return error.
+  }
+  for (const auto &SubAction : Attack.SubActions) {
+    auto Roll = std::rand() % 101;
+    if (SubAction.Accuracy.GetValue() < Roll) {
+      break;
+    }
+    SubAction.Effect->Apply(U, Systems.Units.GetComponent(AttackOpt.UnitId));
+  }
 }
 
 void Engine::CreateBattleState(Squad &Attacker, Squad &Defender) noexcept {

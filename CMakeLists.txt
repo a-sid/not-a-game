@@ -86,6 +86,8 @@ add_library(entities STATIC
   src/lib/entities/squad.h
   src/lib/entities/unit.h
   src/lib/entities/unit.cpp
+  src/lib/entities/unit_grid.cpp
+  src/lib/entities/unit_grid.h
 )
 
 target_link_libraries(entities PRIVATE ui range-v3::range-v3)
@@ -103,6 +105,7 @@ add_library(engine STATIC
   src/lib/engine/engine.h
   src/lib/engine/event.h
   src/lib/engine/map_view.h
+  src/lib/engine/mechanics.h
   src/lib/engine/path.cpp
   src/lib/engine/path.h
   src/lib/engine/player.h

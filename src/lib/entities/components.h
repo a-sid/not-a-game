@@ -1,8 +1,9 @@
 #pragma once
 
-#include "entities/global_map.h"
+#include "entities/map_components.h"
 #include "entities/resource.h"
 #include "entities/squad.h"
+#include "entities/unit.h"
 #include "util/id.h"
 #include "util/paged_vector.h"
 #include "util/types.h"

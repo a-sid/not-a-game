@@ -1,6 +1,7 @@
 #pragma once
 
 #include "entities/common.h"
+//#include "entities/components.h"
 #include "entities/effect.h"
 #include "entities/inventory.h"
 #include "entities/resource.h"
@@ -11,29 +12,72 @@
 
 #include <cstdint>
 #include <deque>
+#include <span>
 #include <string>
 
 namespace NotAGame {
 
 class Unit;
+class Squad;
+class GameplaySystems;
 
-struct AttackSource {
-  std::string Description;
-  uint64_t Tags;
+enum class ActionSquad { Enemy, Friendly };
+
+using ReachableUnits = SmallVector<Unit *, 16>;
+
+struct ActionRange {
+public:
+  virtual ReachableUnits ComputeReachableUnits(GameplaySystems &Systems, Squad &EnemySquad,
+                                               Squad &FriendSquad,
+                                               const Unit &U) const noexcept = 0;
 };
 
-class AttackAction {
-  virtual void Apply(const Unit &Attacker, Coord Coord) const noexcept = 0;
-  virtual bool CanApply(const Unit &Target) const noexcept = 0;
-  virtual const std::string &GetDescription() const noexcept = 0;
-};
+class SquadRange : public ActionRange {
+public:
+  SquadRange(ActionSquad Target) : Target{Target} {}
+  ReachableUnits ComputeReachableUnits(GameplaySystems &Systems, Squad &EnemySquad,
+                                       Squad &FriendSquad, const Unit &U) const noexcept;
 
-class Attack {
-  Id<AttackSource> AttackSourceId;
-  int16_t Value_;
-  int16_t Modifier_;
+protected:
+  virtual ReachableUnits ComputeReachableUnitsInSquad(GameplaySystems &Systems, Squad &S,
+                                                      const Unit &U) const noexcept = 0;
 
 private:
+  ActionSquad Target;
+};
+
+class NearestUnitRange final : public ActionRange {
+public:
+  explicit NearestUnitRange(Size GridWidth) : GridWidth_{GridWidth} {}
+  ReachableUnits ComputeReachableUnits(GameplaySystems &Systems, Squad &EnemySquad,
+                                       Squad &FriendSquad, const Unit &U) const noexcept override;
+
+private:
+  Size GridWidth_;
+};
+
+class AnyUnitRange final : public SquadRange {
+public:
+  AnyUnitRange(ActionSquad Target) : SquadRange{Target} {}
+
+protected:
+  ReachableUnits ComputeReachableUnitsInSquad(GameplaySystems &Systems, Squad &S,
+                                              const Unit &U) const noexcept override;
+};
+
+class AllUnitRange final : public SquadRange {
+public:
+  AllUnitRange(ActionSquad Target) : SquadRange{Target} {}
+
+protected:
+  ReachableUnits ComputeReachableUnitsInSquad(GameplaySystems &Systems, Squad &S,
+                                              const Unit &U) const noexcept override;
+};
+
+struct ActionSource : public Named {
+  ActionSource(Named Name) : Named{std::move(Name)} {}
+  using Named::Named;
+  Id<ActionSource> ComponentId;
 };
 
 using Bitset = uint64_t;
@@ -110,9 +154,51 @@ using SizeTrait = ValueTrait<Size>;
 
 class BitsetTrait : public ValueTrait<Bitset> {
 public:
-  virtual void RecomputeEffects(const SmallVector<Effect, 16> &Effects) noexcept;
+  virtual void RecomputeEffects(std::span<Effect> Effects) noexcept;
 };
 
+struct EffectAction {
+  EffectAction(Id<ActionSource> ActionSource, std::string Description) noexcept
+      : Source{ActionSource}, Description{std::move(Description)} {}
+
+  virtual ~EffectAction() noexcept = default;
+
+  virtual void Apply(Unit &Attacker, Unit &Target) noexcept = 0;
+  virtual std::unique_ptr<EffectAction> Clone() const noexcept = 0;
+
+  Id<ActionSource> Source;
+  std::string Description;
+};
+
+struct SubAction {
+  CappedTrait<uint8_t> Accuracy;
+  std::unique_ptr<EffectAction> Effect;
+
+  ~SubAction() noexcept = default;
+  SubAction() noexcept = default;
+  SubAction(const SubAction &RHS) noexcept : Accuracy{RHS.Accuracy}, Effect{RHS.Effect->Clone()} {}
+  SubAction(SubAction &&) noexcept = default;
+
+  SubAction &operator=(const SubAction &RHS) noexcept {
+    Accuracy = RHS.Accuracy;
+    Effect = RHS.Effect->Clone();
+    return *this;
+  }
+  SubAction &operator=(SubAction &&) noexcept = default;
+};
+
+struct UnitAction {
+  Size Index;
+  const ActionRange *Range;
+  SmallVector<SubAction, 2> SubActions;
+};
+/*
+class AttackAction {
+  virtual void Apply(const Unit &Attacker, Coord Coord) const noexcept = 0;
+  virtual bool CanApply(const Unit &Target) const noexcept = 0;
+  virtual const std::string &GetDescription() const noexcept = 0;
+};
+*/
 struct Skill {};
 
 struct LeaderData {
@@ -206,6 +292,10 @@ public:
       : Named{std::move(N)}, HireCost{ResourceRegistry}, ResurrectCost{ResourceRegistry},
         HealPerHPCost{ResourceRegistry} {}
 
+  // Unit(Unit &&) noexcept = default;
+
+  Id<Unit> ComponentId;
+
   IconSet GridIcons;
   Id<Icon> InfoIconId;
 
@@ -235,10 +325,9 @@ public:
   SizeTrait Experience;
   SizeTrait Speed;
 
-  SizeTrait AttackPower;
+  std::vector<UnitAction> BattleActions;
   CappedTrait<Size> Armor;
 
-  Id<Unit> ComponentId;
   Id<Squad> SquadId;
   Coord GridPosition;
 

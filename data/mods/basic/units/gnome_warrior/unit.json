@@ -16,17 +16,23 @@
   "speed": 40,
   "exp": 700,
   "num_attacks": 1,
-  "attack": {
-    "range": "nearest",
-    "attacks": [
-      {
-        "damage_source": "weapon",
-        "effect": "damage",
-        "value": 55,
-        "accuracy": 80
-      }
-    ]
-  },
+  "actions": [
+    {
+      "range": "nearest",
+      "subactions": [
+        {
+          "description": {
+            "ru": "Удар молота",
+            "en": "Hammer strike"
+          },
+          "source": "weapon",
+          "kind": "direct_damage",
+          "amount": 55,
+          "accuracy": 80
+        }
+      ]
+    }
+  ],
   "immunes": [],
   "wards": [],
   "exp_for_kill": 60,

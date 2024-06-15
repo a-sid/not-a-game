@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entities/unit.h"
+#include "entities/unit_grid.h"
 #include "util/id.h"
 #include "util/registry.h"
 #include "util/types.h"
@@ -11,66 +11,8 @@
 namespace NotAGame {
 
 struct GuardComponent;
-
-struct UnitPosition {
-  Id<Unit> UnitId;
-  Coord Position;
-};
-
-class Grid {
-public:
-  Grid(uint8_t Width, uint8_t Height) noexcept
-      : Units_(Width * Height, NullId), Width_{Width}, Height_{Height} {}
-
-  Id<Unit> GetUnit(Coord Coord) const noexcept { return GetUnit(Coord.X, Coord.Y); }
-  Id<Unit> GetUnit(Dim X, Dim Y) const noexcept { return Units_[Width_ * Y + X]; }
-
-  Id<Unit> &GetUnit(Coord Coord) noexcept { return GetUnit(Coord.X, Coord.Y); }
-  Id<Unit> &GetUnit(Dim X, Dim Y) noexcept { return Units_[Width_ * Y + X]; }
-
-  bool CanPlaceUnit(const Unit *Unit, Coord Coord) const noexcept {
-    if (Coord.X + ToDim(Unit->Width) > Width_ || Coord.Y + ToDim(Unit->Height) > Height_) {
-      return false;
-    }
-    for (Dim Y = Coord.Y, EY = Coord.Y + ToDim(Unit->Height); Y < EY; ++Y) {
-      for (Dim X = Coord.X, EX = Coord.X + ToDim(Unit->Width); X < EX; ++X) {
-        if (GetUnit(X, Y).IsValid()) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
-  bool TrySetUnit(Id<Unit> UnitId, Unit *Unit, Coord Coord) noexcept {
-    if (CanPlaceUnit(Unit, Coord)) {
-      SetUnit(UnitId, Unit, Coord);
-      return true;
-    }
-    return false;
-  }
-
-private:
-  void SetUnit(Id<Unit> UnitId, Unit *Unit, Coord Coord) noexcept {
-    for (Dim Y = Coord.Y, EY = Coord.Y + ToDim(Unit->Height); Y < EY; ++Y) {
-      for (Dim X = Coord.X, EX = Coord.X + ToDim(Unit->Width); X < EX; ++X) {
-        GetUnit(X, Y) = UnitId;
-      }
-    }
-    Unit->GridPosition = Coord;
-  }
-
-  std::vector<Id<Unit>> Units_;
-  uint8_t Width_;
-  uint8_t Height_;
-};
-
 class Player;
-
-struct GridSettings {
-  uint8_t Width;
-  uint8_t Height;
-};
+class Unit;
 
 class Squad {
 public:
